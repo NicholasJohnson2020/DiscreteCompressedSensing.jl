@@ -94,17 +94,16 @@ for trial_num=1:NUM_TRIALS
         if method_name == "BPD_Gurobi"
             trial_start = now()
             beta_fitted = basisPursuitDenoising(X, Y, epsilon * full_error,
-                                                solver='Gurobi')
+                                                solver="Gurobi")
             trial_end_time = now()
         elseif method_name == "BPD_SCS"
             trial_start = now()
             beta_fitted = basisPursuitDenoising(X, Y, epsilon * full_error,
-                                                solver='SCS')
+                                                solver="SCS")
             trial_end_time = now()
         elseif method_name == "Exact_Naive"
             trial_start = now()
-            _, beta_fitted = exactCompressedSensing(X, Y, epsilon * full_error,
-                                                    solver='SCS')
+            _, beta_fitted = exactCompressedSensing(X, Y, epsilon * full_error)
             trial_end_time = now()
         elseif method_name == "Exact_Binary"
             trial_start = now()
