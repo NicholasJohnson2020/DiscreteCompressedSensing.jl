@@ -1,7 +1,7 @@
 using Pkg
 Pkg.activate("/home/nagj/.julia/environments/sparse_discrete")
 
-include("../src/discreteCompressedSensing.jl")
+include("../discreteCompressedSensing.jl")
 
 using JSON, Dates
 
