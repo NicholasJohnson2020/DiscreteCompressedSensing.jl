@@ -1,3 +1,6 @@
+using Pkg
+Pkg.activate("/home/nagj/.julia/envrionments/sparse_discrete")
+
 using JSON, Random, Distributions
 
 function sample_data(n, p, k, sigma, noise_to_signal)
