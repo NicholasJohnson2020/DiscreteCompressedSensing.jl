@@ -49,7 +49,8 @@ p = param_dict[string(task_ID)]["P"]
 k = param_dict[string(task_ID)]["K"]
 ratio = param_dict[string(task_ID)]["noise_ratio"]
 
-experiment_data = synthetic_data[string(param_dict[string(task_ID)])]
+key = Dict{String, Real}(param_dict[string(task_ID)])
+experiment_data = synthetic_data[string(key)]
 
 param_dict = nothing
 synthetic_data = nothing
