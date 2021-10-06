@@ -48,7 +48,7 @@ data_dict["sigma"] = sigma
 
 for n in N, p in P, k in K, noise_ratio in noise_to_signal
 
-    config_count += 1
+    global config_count += 1
     param_dict[config_count] = Dict("N"=>n, "P"=>p, "K"=>k,
                                     "noise_ratio"=>noise_to_signal)
 
