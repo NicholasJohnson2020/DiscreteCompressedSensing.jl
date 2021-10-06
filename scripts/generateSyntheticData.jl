@@ -1,5 +1,5 @@
 using Pkg
-Pkg.activate("/home/nagj/.julia/envrionments/sparse_discrete")
+Pkg.activate("/home/nagj/.julia/environments/sparse_discrete")
 
 using JSON, Random, Distributions
 
