@@ -3,7 +3,7 @@ Pkg.activate("/home/nagj/.julia/environments/sparse_discrete")
 
 using JSON, Random, Distributions
 
-function sample_data(n, p, k, sigma, noise_to_signal)
+function sample_data(n, p, k, sigma, noise_ratio)
 
     data_dist = Normal(0, sigma)
     X = rand(data_dist, (n, p))
@@ -16,7 +16,7 @@ function sample_data(n, p, k, sigma, noise_to_signal)
     end
 
     Y = X * beta
-    noise_dist = Normal(0, noise_to_signal * sigma)
+    noise_dist = Normal(0, noise_ratio * sigma)
     noise = rand(noise_dist, n)
     Y = Y + noise
 
@@ -50,11 +50,11 @@ for n in N, p in P, k in K, noise_ratio in noise_to_signal
 
     global config_count += 1
     param_dict[config_count] = Dict("N"=>n, "P"=>p, "K"=>k,
-                                    "noise_ratio"=>noise_to_signal)
+                                    "noise_ratio"=>noise_ratio)
 
     current_data_dict = Dict()
     for trial_num = 1:NUM_TRIALS_PER_CONFIG
-        X, Y, _, beta = sample_data(n, p, k, sigma, noise_to_signal)
+        X, Y, _, beta = sample_data(n, p, k, sigma, noise_ratio)
         current_data_dict[trial_num] = Dict("X"=>X, "Y"=>Y, "k"=>k,
                                             "beta"=>beta)
     end
