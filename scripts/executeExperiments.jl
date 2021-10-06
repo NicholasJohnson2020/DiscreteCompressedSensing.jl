@@ -6,13 +6,14 @@ include("../discreteCompressedSensing.jl")
 using JSON, Dates
 
 function unserialize_matrix(mat)
-    n = size(mat)[1]
-    output = zeros(n, n)
-    for i=1:n, j=1:n
-        output[i, j] = mat[i][j]
+    n = size(mat[1])[1]
+    p = size(mat)[1]
+    output = zeros(n, p)
+    for i=1:n, j=1:p
+        output[i, j] = mat[p][i]
     end
     return output
-end
+end;
 
 epsilon_list = collect(1.1:0.1:2)
 numerical_threshold = 1e-4
