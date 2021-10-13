@@ -60,6 +60,10 @@ function SparseRegression(X, Y, gamma, k; solver_output=1)
     beta = zeros(p)
     X_s = X[:, s_nonzeros]
 
+    gamma = real(gamma)
+    Y = real(Y)
+    X_s = real(X_s)
+
     beta[s_nonzeros] = gamma * X_s' * (Y - X_s * ((I / gamma + X_s' * X_s) \ (X_s'* Y)))
     return s_opt, beta, s_nonzeros
 end;
