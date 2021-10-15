@@ -24,7 +24,7 @@ for config = 1:NUM_CONFIGS
       exp_data = JSON.parse(exp_data)
    end
 
-   epsilon_values = exp_dta["epsilon_values"]
+   epsilon_values = exp_data["epsilon_values"]
 
    for epsilon in epsilon_values
       current_row = [exp_data["N"],
