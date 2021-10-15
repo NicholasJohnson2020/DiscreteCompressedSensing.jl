@@ -32,12 +32,12 @@ for config = 1:NUM_CONFIGS
                      exp_data["K"],
                      exp_data["noise_to_signal"],
                      epsilon,
-                     Statistics.mean(exp_data[str(epsilon)]["residual_error"]),
-                     Statistics.mean(exp_data[str(epsilon)]["beta_error"]),
-                     Statistics.mean(exp_data[str(epsilon)]["fitted_k"]),
-                     Statistics.mean(exp_data[str(epsilon)]["true_discovery"]),
-                     Statistics.mean(exp_data[str(epsilon)]["false_discovery"]),
-                     Statistics.mean(exp_data[str(epsilon)]["execution_time"])]
+                     Statistics.mean(exp_data[string(epsilon)]["residual_error"]),
+                     Statistics.mean(exp_data[string(epsilon)]["beta_error"]),
+                     Statistics.mean(exp_data[string(epsilon)]["fitted_k"]),
+                     Statistics.mean(exp_data[string(epsilon)]["true_discovery"]),
+                     Statistics.mean(exp_data[string(epsilon)]["false_discovery"]),
+                     Statistics.mean(exp_data[string(epsilon)]["execution_time"])]
    end
 
    push!(df, current_row)
