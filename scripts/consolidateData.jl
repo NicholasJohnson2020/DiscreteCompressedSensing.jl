@@ -38,10 +38,10 @@ for config = 1:NUM_CONFIGS
                      Statistics.mean(exp_data[string(epsilon)]["true_discovery"]),
                      Statistics.mean(exp_data[string(epsilon)]["false_discovery"]),
                      Statistics.mean(exp_data[string(epsilon)]["execution_time"])]
-   end
+      push!(df, current_row)
+      global successful_entries += 1
 
-   push!(df, current_row)
-   global successful_entries += 1
+   end
 
 end
 
