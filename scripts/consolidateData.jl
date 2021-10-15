@@ -7,6 +7,8 @@ NUM_CONFIGS = parse(Int64, ARGS[2])
 INPUT_PATH = ARGS[3]
 OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "_aggrData.csv"
 
+numerical_threshold = 1e-6
+
 df = DataFrame(N=Int64[], p=Int64[], k=Int64[], ratio=Float64[],
                epsilon=Float64[], residual_error=Float64[],
                beta_error=Float64[], fitted_k=Int64[], true_disc=Float64[],
@@ -27,6 +29,11 @@ for config = 1:NUM_CONFIGS
    epsilon_values = exp_data["epsilon_values"]
 
    for epsilon in epsilon_values
+      fitted_k_vals = []
+      for sol in exp_dta[string(epsilon)]["solution"]
+         fitted_k = sum(abs.(beta_fitted) .> numerical_threshold)
+         append!(fitted_k_vals, fitted_k)
+      end
       current_row = [exp_data["N"],
                      exp_data["P"],
                      exp_data["K"],
@@ -34,7 +41,8 @@ for config = 1:NUM_CONFIGS
                      epsilon,
                      Statistics.mean(exp_data[string(epsilon)]["residual_error"]),
                      Statistics.mean(exp_data[string(epsilon)]["beta_error"]),
-                     Statistics.mean(exp_data[string(epsilon)]["fitted_k"]),
+                     #Statistics.mean(exp_data[string(epsilon)]["fitted_k"]),
+                     Statistics.mean(fitted_k_vals),
                      Statistics.mean(exp_data[string(epsilon)]["true_discovery"]),
                      Statistics.mean(exp_data[string(epsilon)]["false_discovery"]),
                      Statistics.mean(exp_data[string(epsilon)]["execution_time"])]
