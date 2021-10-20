@@ -191,7 +191,7 @@ function exactCompressedSensingHeuristic(A, b, epsilon)
         for index in current_support
             scores[index] = 0
         end
-        new_index = argmax(scores)[2]
+        new_index = argmax(scores)
         append!(current_support, new_index)
         current_mat = hcat(current_mat, A[:, new_index])
         current_x = pinv(current_mat'*current_mat)*current_mat'*b
