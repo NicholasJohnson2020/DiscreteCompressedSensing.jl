@@ -207,6 +207,6 @@ function exactCompressedSensingHeuristic(A, b, epsilon)
         beta[current_index] = current_x[i]
     end
 
-    return num_support, beta
+    return beta, num_support
 
 end;
