@@ -1,3 +1,5 @@
+GUROBI_ENV = Gurobi.Env()
+
 function regobj(X, Y, s, gamma)
     indices = findall(s .> 0.5)
     n = length(Y)
@@ -14,7 +16,7 @@ function SparseRegression(X, Y, gamma, k; solver_output=1)
     p=size(X)[2]
 
     #miop = direct_model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
-    miop = direct_model(Gurobi.Optimizer())
+    miop = direct_model(Gurobi.Optimizer(GUROBI_ENV))
     set_optimizer_attribute(miop, "OutputFlag", solver_output)
 
     # Optimization variables
@@ -159,4 +161,49 @@ function exactCompressedSensingBinSearch(A, b, epsilon; gamma_init=1,
     end
 
     return upper_support, upper_beta, lower_support
+end;
+
+function exactCompressedSensingHeuristic(A, b, epsilon)
+
+    (m, n) = size(A)
+
+    x_full = pinv(A'*A)*A'*b
+    full_error = norm(A*x_full-b)^2
+
+    if full_error > epsilon
+        return false
+    end
+
+    if norm(b)^2 < epsilon
+        return 0
+    end
+
+    first_index = argmax(abs.(b'*A))[2]
+    current_support = [first_index]
+    current_mat = A[:, first_index]
+    current_x = pinv(current_mat'*current_mat)*current_mat'*b
+    current_residual = b-current_mat*current_x
+    current_error = norm(current_residual)^2
+
+    while current_error > epsilon
+
+        new_index = argmax(abs.(current_residual'A))[2]
+        @assert !(new_index in current_support)
+        append!(current_support, new_index)
+        current_mat = hcat(current_mat, A[:, new_index])
+        current_x = pinv(current_mat'*current_mat)*current_mat'*b
+        current_residual = b-current_mat*current_x
+        current_error = norm(current_residual)^2
+
+    end
+
+    num_support = length(current_support)
+    beta = zeros(n)
+    for i=1:num_support
+        current_index = current_support[i]
+        beta[current_index] = current_x[i]
+    end
+
+    return num_support, beta
+
 end;
