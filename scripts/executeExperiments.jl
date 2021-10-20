@@ -15,7 +15,7 @@ function unserialize_matrix(mat)
     return output
 end;
 
-epsilon_list = collect(1.1:0.1:2)
+epsilon_list = collect(1:0.05:1.5)
 numerical_threshold = 1e-4
 
 method_name = ARGS[1]
@@ -24,7 +24,7 @@ output_path = ARGS[3]
 task_ID = ARGS[4]
 
 valid_methods = ["BPD_Gurobi", "BPD_SCS", "Exact_Naive", "Exact_Binary",
-                 "MISOC"]
+                 "MISOC", "Heuristic"]
 
 @assert method_name in valid_methods
 
@@ -115,6 +115,11 @@ for trial_num=1:NUM_TRIALS
             trial_start = now()
             beta_fitted, _, _ = perspectiveFormulation(X, Y, epsilon*full_error,
                                                        1 / n^2)
+            trial_end_time = now()
+        elseif method_name == "Heuristic"
+            trial_start = now()
+            beta_fitted, _ = exactCompressedSensingHeuristic(X, Y,
+                                                             epsilon*full_error)
             trial_end_time = now()
         end
 
