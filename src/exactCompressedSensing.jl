@@ -1,4 +1,4 @@
-GUROBI_ENV = Gurobi.Env()
+ GUROBI_ENV = Gurobi.Env()
 
 function regobj(X, Y, s, gamma)
     indices = findall(s .> 0.5)
@@ -70,7 +70,8 @@ function SparseRegression(X, Y, gamma, k; solver_output=1)
     return s_opt, beta, s_nonzeros
 end;
 
-function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10)
+function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10,
+                                warm_start=true)
 
     (m, n) = size(A)
     gamma = gamma_init * n
@@ -79,11 +80,16 @@ function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10)
     full_error = norm(A*x_full-b)^2
 
     if full_error > epsilon
-        return false
+        return false, nothing
     end
 
-    best_support = n
-    best_beta = x_full
+    if warm_start
+        best_beta, best_support = exactCompressedSensingHeuristic(A, b, epsilon)
+    else
+        best_support = n
+        best_beta = x_full
+    end
+
     while gamma <= gamma_max
         if best_support == 1
             break
@@ -111,7 +117,7 @@ function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10)
 end;
 
 function exactCompressedSensingBinSearch(A, b, epsilon; gamma_init=1,
-    gamma_max=1e10)
+    gamma_max=1e10, warm_start=true)
 
     (m, n) = size(A)
     gamma = gamma_init * n
@@ -120,11 +126,15 @@ function exactCompressedSensingBinSearch(A, b, epsilon; gamma_init=1,
     full_error = norm(A*x_full-b)^2
 
     if full_error > epsilon
-        return false
+        return false, nothing
     end
 
-    upper_support = n
-    upper_beta = x_full
+    if warm_start
+        upper_beta, upper_support = exactCompressedSensingHeuristic(A, b, epsilon)
+    else
+        upper_support = n
+        upper_beta = x_full
+    end
     upper_gamma = gamma
 
     lower_support = 1
@@ -171,11 +181,11 @@ function exactCompressedSensingHeuristic(A, b, epsilon)
     full_error = norm(A*x_full-b)^2
 
     if full_error > epsilon
-        return false
+        return false, nothing
     end
 
     if norm(b)^2 < epsilon
-        return 0
+        return zeros(n), 0
     end
 
     first_index = argmax(abs.(b'*A))[2]

@@ -24,7 +24,7 @@ function perspectiveRelaxation(A, b, epsilon, lambda; solver_output=0, solver="G
 
     @constraint(model, [i=1:n], z[i] <= 1)
 
-    @objective(model, Min, sum(z[i] + lambda * theta[i] for i=1:n))
+    @objective(model, Min, sum(z[i] + theta[i] / lambda for i=1:n))
 
     optimize!(model)
 
@@ -61,7 +61,7 @@ function perspectiveFormulation(A, b, epsilon, lambda; solver_output=0, solver="
 
     @constraint(model, [i=1:n], z[i] * theta[i] >= x[i]^2)
 
-    @objective(model, Min, sum(z[i] + lambda * theta[i] for i=1:n))
+    @objective(model, Min, sum(z[i] + theta[i] / lambda for i=1:n))
 
     optimize!(model)
 

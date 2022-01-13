@@ -22,12 +22,12 @@ function basisPursuitDenoising(A, b, epsilon; solver_output=0, solver="Gurobi")
 
     @constraint(model, sum(residual[i]^2 for i=1:m) <= epsilon)
 
-    @objective(model, Min, sum(x[i] for i=1:n))
+    @objective(model, Min, sum(abs_x[i] for i=1:n))
 
     optimize!(model)
 
     opt_x = value.(x)
 
-    return opt_x
+    return sum(abs.(opt_x) .> 1e-6), opt_x
 
 end;
