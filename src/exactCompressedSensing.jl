@@ -85,13 +85,14 @@ function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10,
 
     if warm_start
         best_beta, best_support = exactCompressedSensingHeuristic(A, b, epsilon)
+        @assert best_support <= n
     else
         best_support = n
         best_beta = x_full
     end
 
     while gamma <= gamma_max
-        if best_support == 1
+        if best_support <= 1
             break
         end
         current_support = best_support - 1
