@@ -10,7 +10,7 @@ function unserialize_matrix(mat)
     p = size(mat)[1]
     output = zeros(n, p)
     for i=1:n, j=1:p
-        output[i, j] = mat[p][i]
+        output[i, j] = mat[j][i]
     end
     return output
 end;
