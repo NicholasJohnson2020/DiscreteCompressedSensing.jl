@@ -24,7 +24,8 @@ output_path = ARGS[3]
 task_ID = ARGS[4]
 
 valid_methods = ["BPD_Gurobi", "BPD_SCS", "Exact_Naive", "Exact_Binary",
-                 "MISOC", "Heuristic"]
+                 "Exact_Naive_Warm", "Exact_Binary_Warm", "MISOC", "SOC_Relax",
+                 "Heuristic"]
 
 @assert method_name in valid_methods
 
@@ -94,27 +95,45 @@ for trial_num=1:NUM_TRIALS
 
         if method_name == "BPD_Gurobi"
             trial_start = now()
-            beta_fitted = basisPursuitDenoising(X, Y, epsilon * full_error,
-                                                solver="Gurobi")
+            _, beta_fitted = basisPursuitDenoising(X, Y, epsilon * full_error,
+                                                   solver="Gurobi")
             trial_end_time = now()
         elseif method_name == "BPD_SCS"
             trial_start = now()
-            beta_fitted = basisPursuitDenoising(X, Y, epsilon * full_error,
-                                                solver="SCS")
+            _, beta_fitted = basisPursuitDenoising(X, Y, epsilon * full_error,
+                                                   solver="SCS")
             trial_end_time = now()
         elseif method_name == "Exact_Naive"
             trial_start = now()
-            _, beta_fitted = exactCompressedSensing(X, Y, epsilon * full_error)
+            _, beta_fitted = exactCompressedSensing(X, Y, epsilon * full_error,
+                                                    warm_start=false)
             trial_end_time = now()
         elseif method_name == "Exact_Binary"
             trial_start = now()
             _, beta_fitted = exactCompressedSensingBinSearch(X, Y,
-                                                        epsilon * full_error)
+                                                        epsilon * full_error,
+                                                        warm_start=false)
             trial_end_time = now()
-        elseif method_name == "Exact_MISOC"
+        elseif method_name == "Exact_Naive_Warm"
+            trial_start = now()
+            _, beta_fitted = exactCompressedSensing(X, Y, epsilon * full_error,
+                                                    warm_start=true)
+            trial_end_time = now()
+        elseif method_name == "Exact_Binary_Warm"
+            trial_start = now()
+            _, beta_fitted = exactCompressedSensingBinSearch(X, Y,
+                                                        epsilon * full_error,
+                                                        warm_start=true)
+            trial_end_time = now()
+        elseif method_name == "MISOC"
             trial_start = now()
             beta_fitted, _, _ = perspectiveFormulation(X, Y, epsilon*full_error,
-                                                       1 / n^2)
+                                                       n^2)
+            trial_end_time = now()
+        elseif method_name == "SOC_Relax"
+            trial_start = now()
+            beta_fitted, _, _ = perspectiveRelaxation(X, Y, epsilon*full_error,
+                                                      n^2)
             trial_end_time = now()
         elseif method_name == "Heuristic"
             trial_start = now()
