@@ -148,7 +148,11 @@ for trial_num=1:NUM_TRIALS
         true_discovery = sum(abs.(beta_fitted[abs.(true_beta) .> 1e-6]) .> numerical_threshold)
         true_discovery /= true_k
         discovered_indices = abs.(beta_fitted) .>numerical_threshold
-        false_discovery = sum(abs.(true_beta[discovered_indices]) .< 1e-6) / sum(discovered_indices)
+        if fitted_k == 0
+            false_discovery = 0
+        else
+            false_discovery = sum(abs.(true_beta[discovered_indices]) .< 1e-6) / sum(discovered_indices)
+        end
         elapsed_time = Dates.value(trial_end_time - trial_start)
 
         append!(experiment_results[epsilon]["solution"], [beta_fitted])
