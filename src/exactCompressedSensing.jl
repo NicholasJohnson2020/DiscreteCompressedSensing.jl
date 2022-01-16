@@ -191,6 +191,7 @@ function exactCompressedSensingHeuristic(A, b, epsilon)
 
     first_index = argmax(abs.(b'*A))[2]
     current_support = [first_index]
+    num_support = 1
     current_mat = A[:, first_index]
     current_x = pinv(current_mat'*current_mat)*current_mat'*b
     current_residual = b-current_mat*current_x
@@ -198,12 +199,16 @@ function exactCompressedSensingHeuristic(A, b, epsilon)
 
     while current_error > epsilon
 
+        if num_support == n
+            break
+        end
         scores = abs.(current_residual'A)
         for index in current_support
-            scores[index] = 0
+            scores[index] = -1
         end
         new_index = argmax(scores)[2]
         append!(current_support, new_index)
+        num_support += 1
         current_mat = hcat(current_mat, A[:, new_index])
         current_x = pinv(current_mat'*current_mat)*current_mat'*b
         current_residual = b-current_mat*current_x
@@ -211,7 +216,6 @@ function exactCompressedSensingHeuristic(A, b, epsilon)
 
     end
 
-    num_support = length(current_support)
     println(num_support)
     println(n)
     println()
