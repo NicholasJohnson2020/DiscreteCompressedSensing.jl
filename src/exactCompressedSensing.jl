@@ -216,9 +216,6 @@ function exactCompressedSensingHeuristic(A, b, epsilon)
 
     end
 
-    println(num_support)
-    println(n)
-    println()
     beta = zeros(n)
     for i=1:num_support
         current_index = current_support[i]
