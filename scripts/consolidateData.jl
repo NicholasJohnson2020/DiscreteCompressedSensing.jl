@@ -7,7 +7,7 @@ NUM_CONFIGS = parse(Int64, ARGS[2])
 INPUT_PATH = ARGS[3]
 OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "_aggrData.csv"
 
-numerical_threshold = 1e-6
+numerical_threshold = 1e-4
 
 df = DataFrame(N=Int64[], p=Int64[], k=Int64[], ratio=Float64[],
                epsilon=Float64[], residual_error=Float64[],
@@ -31,7 +31,7 @@ for config = 1:NUM_CONFIGS
    for epsilon in epsilon_values
       fitted_k_vals = []
       for sol in exp_data[string(epsilon)]["solution"]
-         fitted_k = sum(abs.(beta_fitted) .> numerical_threshold)
+         fitted_k = sum(abs.(sol) .> numerical_threshold)
          append!(fitted_k_vals, fitted_k)
       end
       current_row = [exp_data["N"],
