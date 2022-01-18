@@ -11,7 +11,7 @@ numerical_threshold = 1e-4
 
 df = DataFrame(N=Int64[], p=Int64[], k=Int64[], ratio=Float64[],
                epsilon=Float64[], residual_error=Float64[],
-               beta_error=Float64[], fitted_k=Int64[], true_disc=Float64[],
+               beta_error=Float64[], fitted_k=Float64[], true_disc=Float64[],
                false_disc=Float64[], exec_time=Float64[])
 
 successful_entries = 0
