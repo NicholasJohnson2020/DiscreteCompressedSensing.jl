@@ -30,7 +30,7 @@ for config = 1:NUM_CONFIGS
 
    for epsilon in epsilon_values
       fitted_k_vals = []
-      for sol in exp_dta[string(epsilon)]["solution"]
+      for sol in exp_data[string(epsilon)]["solution"]
          fitted_k = sum(abs.(beta_fitted) .> numerical_threshold)
          append!(fitted_k_vals, fitted_k)
       end
