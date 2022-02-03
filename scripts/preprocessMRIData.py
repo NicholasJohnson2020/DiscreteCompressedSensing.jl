@@ -44,7 +44,7 @@ def construct_DWT_operator(dim):
 
     return psi_mat_large
 
-new_dim = sys.argv[1]
+new_dim = int(sys.argv[1])
 input_path = sys.argv[2]
 output_path = sys.argv[3] + str(new_dim)
 
