@@ -5,9 +5,9 @@ using JSON
 
 file_path = ARGS[1]
 
-DAMPING_FACTOR = collect(2:1:10)
-SAMPLE_RATE = collect(0.1:0.1:0.9)
-EPSILON_MULTIPLE = collect(1.5:0.5:6)
+DAMPING_FACTOR = collect(2:2:10)
+SAMPLE_RATE = collect(0.2:0.1:0.9)
+EPSILON_MULTIPLE = collect(1.5:0.5:5)
 
 config_count = 0
 
