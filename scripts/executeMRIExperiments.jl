@@ -1,4 +1,4 @@
-include("DiscreteCompressedSensing.jl/discreteCompressedSensing.jl");
+include("../discreteCompressedSensing.jl")
 
 using Dates, NPZ, Distributions, Random, Images, JSON
 
