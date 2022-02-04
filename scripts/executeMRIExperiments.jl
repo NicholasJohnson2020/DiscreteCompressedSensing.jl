@@ -39,8 +39,7 @@ end
 
 METHOD_NAME = ARGS[1]
 INPUT_PATH = ARGS[2]
-OUTPUT_PATH = ARGS[3]
-TASK_ID = ARGS[4]
+TASK_ID = ARGS[3]
 
 valid_methods = ["BPD_Gurobi", "Exact_Naive_Warm", "Heuristic"]
 
