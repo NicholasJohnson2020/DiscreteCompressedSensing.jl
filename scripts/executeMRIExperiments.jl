@@ -56,9 +56,9 @@ open(INPUT_PATH * "params.json", "r") do f
     param_dict = JSON.parse(param_dict)
 end
 
-DAMPING_FACTOR = param_dict[string(task_ID)]["DAMPING_FACTOR"]
-SAMPLE_RATE = param_dict[string(task_ID)]["SAMPLE_RATE"]
-EPSILON_MULTIPLE = param_dict[string(task_ID)]["EPSILON_MULTIPLE"]
+DAMPING_FACTOR = param_dict[string(TASK_ID)]["DAMPING_FACTOR"]
+SAMPLE_RATE = param_dict[string(TASK_ID)]["SAMPLE_RATE"]
+EPSILON_MULTIPLE = param_dict[string(TASK_ID)]["EPSILON_MULTIPLE"]
 
 OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "/"
 
