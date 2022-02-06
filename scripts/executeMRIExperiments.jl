@@ -1,3 +1,6 @@
+using Pkg
+Pkg.activate("/home/nagj/.julia/environments/sparse_discrete")
+
 include("../discreteCompressedSensing.jl")
 
 using Dates, NPZ, Distributions, Random, Images, JSON
