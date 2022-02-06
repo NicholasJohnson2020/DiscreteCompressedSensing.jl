@@ -105,13 +105,13 @@ for slice_index in slice_indexes
     x_full = pinv(A'*A)*A'*b_observed
     full_error = norm(A*x_full-b_observed)^2
 
-    if method_name == "BPD_Gurobi"
+    if METHOD_NAME == "BPD_Gurobi"
         trial_start = now()
         _, beta_fitted = basisPursuitDenoising(A, b_observed,
                                                EPSILON_MULTIPLE*full_error,
                                                solver="Gurobi")
         trial_end_time = now()
-    elseif method_name == "Exact_Binary_Warm"
+    elseif METHOD_NAME == "Exact_Binary_Warm"
         trial_start = now()
         _, beta_fitted = exactCompressedSensingBinSearch(A, b_observed,
                                                          EPSILON_MULTIPLE*full_error,
