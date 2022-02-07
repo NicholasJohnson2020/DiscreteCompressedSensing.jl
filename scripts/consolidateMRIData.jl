@@ -36,11 +36,11 @@ for file_name in file_paths
 
    for slice_index in slice_indexes
 
-      append!(L2_error, exp_data[slice_index]["L2_error"])
-      append!(L1_error, exp_data[slice_index]["L1_error"])
-      append!(L0_norm, exp_data[slice_index]["L0_norm"])
-      append!(ssim, exp_data[slice_index]["ssim"])
-      append!(exec_time, exp_data[slice_index]["execution_time"])
+      append!(L2_error, exp_data[string(slice_index)]["L2_error"])
+      append!(L1_error, exp_data[string(slice_index)]["L1_error"])
+      append!(L0_norm, exp_data[string(slice_index)]["L0_norm"])
+      append!(ssim, exp_data[string(slice_index)]["ssim"])
+      append!(exec_time, exp_data[string(slice_index)]["execution_time"])
 
    end
 
