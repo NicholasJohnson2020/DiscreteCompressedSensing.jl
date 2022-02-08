@@ -125,7 +125,7 @@ for slice_index in slice_indexes
     elseif METHOD_NAMES == "SOC_Relax"
         trial_start = now()
         beta_fitted, _, _ = perspectiveRelaxation(A, b_observed, EPSILON_MULTIPLE*full_error,
-                                                  n^2)
+                                                  n)
     end
 
     reconstruction = basis_mat'*beta_fitted
