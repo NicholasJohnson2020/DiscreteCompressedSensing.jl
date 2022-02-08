@@ -44,7 +44,7 @@ METHOD_NAME = ARGS[1]
 INPUT_PATH = ARGS[2]
 TASK_ID = ARGS[3]
 
-valid_methods = ["BPD_Gurobi", "Exact_Naive_Warm", "Heuristic"]
+valid_methods = ["BPD_Gurobi", "Exact_Naive_Warm", "Heuristic", "SOC_Relax"]
 
 @assert METHOD_NAME in valid_methods
 
