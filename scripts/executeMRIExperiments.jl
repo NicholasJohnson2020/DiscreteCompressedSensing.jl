@@ -122,7 +122,7 @@ for slice_index in slice_indexes
         beta_fitted, _ = exactCompressedSensingHeuristic(A, b_observed,
                                                          EPSILON_MULTIPLE*full_error)
         trial_end_time = now()
-    elseif METHOD_NAMES == "SOC_Relax"
+    elseif METHOD_NAME == "SOC_Relax"
         trial_start = now()
         beta_fitted, _, _ = perspectiveRelaxation(A, b_observed, EPSILON_MULTIPLE*full_error,
                                                   n)
