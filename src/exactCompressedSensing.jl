@@ -225,3 +225,80 @@ function exactCompressedSensingHeuristic(A, b, epsilon)
     return beta, num_support
 
 end;
+
+function exactCompressedSensingHeuristicAcc(A, b, epsilon)
+
+    (m, n) = size(A)
+
+    x_full = pinv(A'*A)*A'*b
+    full_error = norm(A*x_full-b)^2
+
+    if full_error > epsilon
+        return false, nothing
+    end
+
+    if norm(b)^2 < epsilon
+        return zeros(n), 0
+    end
+
+    first_index = argmax(abs.(b'*A))[2]
+    current_support = [first_index]
+    num_support = 1
+    current_mat = A[:, first_index]
+    stored_inv = 1 / norm(current_mat)^2
+    current_x = stored_inv * current_mat' * b
+    current_residual = b-current_mat*current_x
+    current_error = norm(current_residual)^2
+
+    while current_error > epsilon
+
+        if num_support == n
+            break
+        end
+        scores = abs.(current_residual'A)
+        for index in current_support
+            scores[index] = -1
+        end
+        new_index = argmax(scores)[2]
+        append!(current_support, new_index)
+        num_support += 1
+        stored_inv = update_inverse(current_mat, stored_inv, A[:, new_index])
+        current_mat = hcat(current_mat, A[:, new_index])
+        current_x = stored_inv*current_mat'*b
+        current_residual = b-current_mat*current_x
+        current_error = norm(current_residual)^2
+
+    end
+
+    beta = zeros(n)
+    for i=1:num_support
+        current_index = current_support[i]
+        beta[current_index] = current_x[i]
+    end
+
+    return beta, num_support
+
+end;
+
+function update_inverse(A, inv_ATA, a_i)
+
+    comp = a_i'*a_i - a_i'*A*inv_ATA*A'*a_i
+    if typeof(inv_ATA) == Float64
+        n = 1
+    else
+        n = size(inv_ATA)[1]
+    end
+    new_inv = zeros(n+1, n+1)
+    new_inv[(n+1), (n+1)] = 1/comp
+    if n == 1
+        new_inv[1, 1] = inv_ATA + (inv_ATA*A'*a_i*a_i'*A*inv_ATA) / comp
+        new_inv[1, 2] = -(inv_ATA*A'*a_i) / comp
+        new_inv[2, 1] = -(a_i'*A*inv_ATA) / comp
+    else
+        new_inv[1:n, 1:n] = inv_ATA + (inv_ATA*A'*a_i*a_i'*A*inv_ATA) / comp
+        new_inv[1:n, n+1] = -(inv_ATA*A'*a_i) / comp
+        new_inv[n+1, 1:n] = -(a_i'*A*inv_ATA) / comp
+    end
+
+    return new_inv
+end;

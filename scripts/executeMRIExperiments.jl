@@ -119,7 +119,7 @@ for slice_index in slice_indexes
         trial_end_time = now()
     elseif METHOD_NAME == "Heuristic"
         trial_start = now()
-        beta_fitted, _ = exactCompressedSensingHeuristic(A, b_observed,
+        beta_fitted, _ = exactCompressedSensingHeuristicAcc(A, b_observed,
                                                          EPSILON_MULTIPLE*full_error)
         trial_end_time = now()
     elseif METHOD_NAME == "SOC_Relax"
