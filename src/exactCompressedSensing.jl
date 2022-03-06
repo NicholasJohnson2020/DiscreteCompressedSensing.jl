@@ -1,4 +1,4 @@
- GUROBI_ENV = Gurobi.Env()
+GUROBI_ENV = Gurobi.Env()
 
 function regobj(X, Y, s, gamma)
     indices = findall(s .> 0.5)
@@ -291,13 +291,15 @@ function update_inverse(A, inv_ATA, a_i)
     new_inv = zeros(n+1, n+1)
     new_inv[(n+1), (n+1)] = 1/comp
     if n == 1
-        new_inv[1, 1] = inv_ATA + (inv_ATA*A'*a_i*a_i'*A*inv_ATA) / comp
-        new_inv[1, 2] = -(inv_ATA*A'*a_i) / comp
-        new_inv[2, 1] = -(a_i'*A*inv_ATA) / comp
+        temp = inv_ATA*A'*a_i
+        new_inv[1, 1] = inv_ATA + (temp*temp') / comp
+        new_inv[1, 2] = -temp / comp
+        new_inv[2, 1] = -temp' / comp
     else
-        new_inv[1:n, 1:n] = inv_ATA + (inv_ATA*A'*a_i*a_i'*A*inv_ATA) / comp
-        new_inv[1:n, n+1] = -(inv_ATA*A'*a_i) / comp
-        new_inv[n+1, 1:n] = -(a_i'*A*inv_ATA) / comp
+        temp = inv_ATA*A'*a_i
+        new_inv[1:n, 1:n] = inv_ATA + (temp*temp') / comp
+        new_inv[1:n, n+1] = -temp / comp
+        new_inv[n+1, 1:n] = -temp' / comp
     end
 
     return new_inv
