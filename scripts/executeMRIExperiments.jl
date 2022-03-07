@@ -217,7 +217,7 @@ for slice_index in slice_indexes
         append!(experiment_results[slice_index]["rounded_L1_error"], L1_error)
         append!(experiment_results[slice_index]["rounded_L0_norm"], L0_norm)
         append!(experiment_results[slice_index]["rounded_ssim"], ssim)
-        append!(experiment_results[slice_index]["rounded_execution_time"], rounding_time)
+        append!(experiment_results[slice_index]["rounded_execution_time"], Dates.value(rounding_time))
     end
 
     if METHOD_NAME == "SOC_Relax_Rounding"
