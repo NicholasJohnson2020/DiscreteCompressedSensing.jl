@@ -129,6 +129,7 @@ for slice_index in slice_indexes
     full_error = norm(A*x_full-b_observed)^2
 
     rounding_time = nothing
+    n = size(A)[2]
     z_fitted = zeros(n)
     beta_rounded = zeros(n)
     num_cuts = 0
@@ -147,7 +148,6 @@ for slice_index in slice_indexes
         rounding_time = output[5]
         trial_end_time = now()
     elseif METHOD_NAME == "SOC_Relax_Rounding"
-        n = size(A)[2]
         trial_start = now()
         output = perspectiveRelaxation(A, b_observed,
                                        EPSILON_MULTIPLE*full_error,
@@ -158,14 +158,12 @@ for slice_index in slice_indexes
         rounding_time = output[6]
         trial_end_time = now()
     elseif METHOD_NAME == "MISOC"
-        n = size(A)[2]
         trial_start = now()
         beta_fitted, _, _ = perspectiveFormulation(A, b_observed,
                                                    EPSILON_MULTIPLE*full_error,
                                                    n)
         trial_end_time = now()
     elseif METHOD_NAME == "Cutting_Planes_Warm"
-        n = size(A)[2]
         LOAD_PATH = INPUT_PATH * "SOC_Relax_Rounding/"
         warm_start_data = Dict()
         open(LOAD_PATH * "_" * string(TASK_ID) * ".json", "r") do f
