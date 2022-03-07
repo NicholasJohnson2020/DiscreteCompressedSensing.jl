@@ -1,3 +1,5 @@
+include("helperLibrary.jl")
+
 GUROBI_ENV = Gurobi.Env()
 
 function regobj(X, Y, s, gamma)
@@ -84,7 +86,7 @@ function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10,
     end
 
     if warm_start
-        best_beta, best_support = exactCompressedSensingHeuristic(A, b, epsilon)
+        best_beta, best_support = exactCompressedSensingHeuristicAcc(A, b, epsilon)
         @assert best_support <= n
     else
         best_support = n
@@ -118,7 +120,7 @@ function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10,
 end;
 
 function exactCompressedSensingBinSearch(A, b, epsilon; gamma_init=1,
-    gamma_max=1e10, warm_start=true)
+    gamma_max=1e10, warm_start=true, verbose=false)
 
     (m, n) = size(A)
     gamma = gamma_init * n
@@ -131,7 +133,7 @@ function exactCompressedSensingBinSearch(A, b, epsilon; gamma_init=1,
     end
 
     if warm_start
-        upper_beta, upper_support = exactCompressedSensingHeuristic(A, b, epsilon)
+        upper_beta, upper_support = exactCompressedSensingHeuristicAcc(A, b, epsilon)
     else
         upper_support = n
         upper_beta = x_full
@@ -158,7 +160,9 @@ function exactCompressedSensingBinSearch(A, b, epsilon; gamma_init=1,
                 lower_gamma = current_gamma
                 break
             end
-            println("Solving for support $current_support and gamma $current_gamma.")
+            if verbose
+                println("Solving for support $current_support and gamma $current_gamma.")
+            end
             _, current_beta, _ = SparseRegression(A, b, current_gamma,
                                                   current_support,
                                                   solver_output=0)
@@ -278,29 +282,4 @@ function exactCompressedSensingHeuristicAcc(A, b, epsilon)
 
     return beta, num_support
 
-end;
-
-function update_inverse(A, inv_ATA, a_i)
-
-    comp = a_i'*a_i - a_i'*A*inv_ATA*A'*a_i
-    if typeof(inv_ATA) == Float64
-        n = 1
-    else
-        n = size(inv_ATA)[1]
-    end
-    new_inv = zeros(n+1, n+1)
-    new_inv[(n+1), (n+1)] = 1/comp
-    if n == 1
-        temp = inv_ATA*A'*a_i
-        new_inv[1, 1] = inv_ATA + (temp*temp') / comp
-        new_inv[1, 2] = -temp / comp
-        new_inv[2, 1] = -temp' / comp
-    else
-        temp = inv_ATA*A'*a_i
-        new_inv[1:n, 1:n] = inv_ATA + (temp*temp') / comp
-        new_inv[1:n, n+1] = -temp / comp
-        new_inv[n+1, 1:n] = -temp' / comp
-    end
-
-    return new_inv
 end;

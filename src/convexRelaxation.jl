@@ -1,4 +1,5 @@
-function perspectiveRelaxation(A, b, epsilon, lambda; solver_output=0, solver="Gurobi")
+function perspectiveRelaxation(A, b, epsilon, lambda;
+    solver_output=0, solver="Gurobi", round_solution=true)
 
     @assert solver in ["Gurobi", "SCS"]
 
@@ -32,7 +33,12 @@ function perspectiveRelaxation(A, b, epsilon, lambda; solver_output=0, solver="G
     opt_x = value.(x)
     opt_z = value.(z)
 
-    return opt_x, opt_z, obj_value
+    if round_solution
+        rounded_x, num_support = roundSolution(opt_z, A, b, epsilon)
+        return num_support, rounded_x, opt_x, opt_z, obj_value
+    else
+        return opt_x, opt_z, obj_value
+    end
 
 end;
 

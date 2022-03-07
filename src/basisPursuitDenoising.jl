@@ -1,4 +1,7 @@
-function basisPursuitDenoising(A, b, epsilon; solver_output=0, solver="Gurobi")
+include("helperLibrary.jl")
+
+function basisPursuitDenoising(A, b, epsilon;
+    solver_output=0, solver="Gurobi", round_solution=true)
 
     @assert solver in ["Gurobi", "SCS"]
 
@@ -28,6 +31,11 @@ function basisPursuitDenoising(A, b, epsilon; solver_output=0, solver="Gurobi")
 
     opt_x = value.(x)
 
-    return sum(abs.(opt_x) .> 1e-6), opt_x
+    if round_solution
+        rounded_x, num_support = roundSolution(opt_x, A, b, epsilon)
+        return num_support, rounded_x, sum(abs.(opt_x) .> 1e-6), opt_x
+    else
+        return sum(abs.(opt_x) .> 1e-6), opt_x
+    end
 
 end;
