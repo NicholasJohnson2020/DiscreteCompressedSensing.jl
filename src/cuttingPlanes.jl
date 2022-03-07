@@ -142,5 +142,5 @@ function CuttingPlanes(A, b, epsilon, lambda; solver_output=0, M=100, lower_boun
     opt_sol, opt_val = perspectiveFormulationSub(A, b, z_opt, epsilon, lambda,
                                                  solver_output=solver_output, M=100)
 
-    return opt_sol, z_opt, opt_val + sum(z_opt)
+    return opt_sol, z_opt, opt_val + sum(z_opt), size(cb_calls)[1]
 end;
