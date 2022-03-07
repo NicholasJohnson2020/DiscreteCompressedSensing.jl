@@ -44,7 +44,11 @@ METHOD_NAME = ARGS[1]
 INPUT_PATH = ARGS[2]
 TASK_ID = ARGS[3]
 
-valid_methods = ["BPD_Gurobi", "Exact_Naive_Warm", "Heuristic", "SOC_Relax"]
+valid_methods = ["Heuristic_Acc",
+                 "BPD_Gurobi_Rounding",
+                 "SOC_Relax_Rounding",
+                 "MISOC",
+                 "Cutting_Planes_Warm"]
 
 @assert METHOD_NAME in valid_methods
 
@@ -64,7 +68,8 @@ OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "/"
 
 numerical_threshold = 1e-4
 
-slice_indexes = collect(30:10:170)
+#slice_indexes = collect(30:10:170)
+slice_indexes = [60, 100]
 
 FT_mat = npzread(INPUT_PATH * "FT_mat.npy")
 basis_mat = npzread(INPUT_PATH * "basis_mat.npy")
@@ -86,6 +91,24 @@ for slice_index in slice_indexes
     slice_results["L0_norm"] = []
     slice_results["ssim"] = []
     slice_results["execution_time"] = []
+
+    if METHOD_NAME in ["BPD_Gurobi_Rounding", "SOC_Relax_Rounding"]
+        slice_results["rounded_solution"] = []
+        slice_results["rounded_L2_error"] = []
+        slice_results["rounded_L1_error"] = []
+        slice_results["rounded_L0_norm"] = []
+        slice_results["rounded_ssim"] = []
+        slice_results["rounded_execution_time"] = []
+    end
+
+    if METHOD_NAME == "SOC_Relax_Rounding"
+        slice_results["cutting_planes_lb"] = []
+    end
+
+    if METHOD_NAME == "Cutting_Planes_Warm"
+        slice_results["num_cuts"] = []
+    end
+
     experiment_results[slice_index] = slice_results
 end
 
@@ -105,28 +128,59 @@ for slice_index in slice_indexes
     x_full = pinv(A'*A)*A'*b_observed
     full_error = norm(A*x_full-b_observed)^2
 
-    if METHOD_NAME == "BPD_Gurobi"
-        trial_start = now()
-        _, beta_fitted = basisPursuitDenoising(A, b_observed,
-                                               EPSILON_MULTIPLE*full_error,
-                                               solver="Gurobi")
-        trial_end_time = now()
-    elseif METHOD_NAME == "Exact_Binary_Warm"
-        trial_start = now()
-        _, beta_fitted = exactCompressedSensingBinSearch(A, b_observed,
-                                                         EPSILON_MULTIPLE*full_error,
-                                                         warm_start=true)
-        trial_end_time = now()
-    elseif METHOD_NAME == "Heuristic"
+    rounding_time = nothing
+    z_fitted = zeros(n)
+    beta_rounded = zeros(n)
+    num_cuts = 0
+    if METHOD_NAME == "Heuristic_Acc"
         trial_start = now()
         beta_fitted, _ = exactCompressedSensingHeuristicAcc(A, b_observed,
-                                                         EPSILON_MULTIPLE*full_error)
+                                                            EPSILON_MULTIPLE*full_error)
         trial_end_time = now()
-    elseif METHOD_NAME == "SOC_Relax"
+    elseif METHOD_NAME == "BPD_Gurobi_Rounding"
+        trial_start = now()
+        output = basisPursuitDenoising(A, b_observed,
+                                       EPSILON_MULTIPLE*full_error,
+                                       solver="Gurobi", round_solution=true)
+        beta_fitted = output[4]
+        beta_rounded = output[2]
+        rounding_time = output[5]
+        trial_end_time = now()
+    elseif METHOD_NAME == "SOC_Relax_Rounding"
         n = size(A)[2]
         trial_start = now()
-        beta_fitted, _, _ = perspectiveRelaxation(A, b_observed, EPSILON_MULTIPLE*full_error,
-                                                  n)
+        output = perspectiveRelaxation(A, b_observed,
+                                       EPSILON_MULTIPLE*full_error,
+                                       n, round_solution=true)
+        beta_fitted = output[3]
+        beta_rounded = output[2]
+        z_fitted = output[4]
+        rounding_time = output[6]
+        trial_end_time = now()
+    elseif METHOD_NAME == "MISOC"
+        n = size(A)[2]
+        trial_start = now()
+        beta_fitted, _, _ = perspectiveFormulation(A, b_observed,
+                                                   EPSILON_MULTIPLE*full_error,
+                                                   n)
+        trial_end_time = now()
+    elseif METHOD_NAME == "Cutting_Planes_Warm"
+        n = size(A)[2]
+        LOAD_PATH = INPUT_PATH * "SOC_Relax_Rounding/"
+        warm_start_data = Dict()
+        open(LOAD_PATH * "_" * string(TASK_ID) * ".json", "r") do f
+            global warm_start_data
+            dicttxt = JSON.read(f, String)  # file information to string
+            warm_start_data = JSON.parse(dicttxt)  # parse and transform data
+            warm_start_data = JSON.parse(warm_start_data)
+        end
+        upper_bound = warm_start_data[string(slice_index)]["rounded_L0_norm"][1]
+        lower_bound = warm_start_data[string(slice_index)]["cutting_planes_lb"][1]
+        trial_start = now()
+        output = CuttingPlanes(A, b_observed, EPSILON_MULTIPLE*full_error, n,
+                               lower_bound=lower_bound, upper_bound=upper_bound)
+        beta_fitted = output[1]
+        num_cuts = output[4]
         trial_end_time = now()
     end
 
@@ -148,6 +202,33 @@ for slice_index in slice_indexes
     append!(experiment_results[slice_index]["L0_norm"], L0_norm)
     append!(experiment_results[slice_index]["ssim"], ssim)
     append!(experiment_results[slice_index]["execution_time"], elapsed_time)
+
+    if METHOD_NAME in ["BPD_Gurobi_Rounding", "SOC_Relax_Rounding"]
+
+        reconstruction = basis_mat'*beta_rounded
+        L2_error = norm(image-reconstruction)^2 / norm(image)^2
+        L1_error = norm(image-reconstruction, 1) / norm(image, 1)
+        L0_norm = sum(abs.(beta_rounded) .> numerical_threshold)
+        n = size(beta_rounded)[1]
+        img_width = Int64(n^0.5)
+        ssim = assess_ssim(reshape(image, img_width, img_width),
+                           reshape(reconstruction, img_width, img_width))
+
+        append!(experiment_results[slice_index]["rounded_solution"], [beta_rounded])
+        append!(experiment_results[slice_index]["rounded_L2_error"], L2_error)
+        append!(experiment_results[slice_index]["rounded_L1_error"], L1_error)
+        append!(experiment_results[slice_index]["rounded_L0_norm"], L0_norm)
+        append!(experiment_results[slice_index]["rounded_ssim"], ssim)
+        append!(experiment_results[slice_index]["rounded_execution_time"], rounding_time)
+    end
+
+    if METHOD_NAME == "SOC_Relax_Rounding"
+        append!(experiment_results[slice_index]["cutting_planes_lb"], sum(z_fitted))
+    end
+
+    if METHOD_NAME == "Cutting_Planes_Warm"
+        append!(experiment_results[slice_index]["num_cuts"], num_cuts)
+    end
 
 end
 

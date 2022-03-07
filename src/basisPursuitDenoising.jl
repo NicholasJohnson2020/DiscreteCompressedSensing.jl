@@ -32,8 +32,11 @@ function basisPursuitDenoising(A, b, epsilon;
     opt_x = value.(x)
 
     if round_solution
+        rounding_start = now()
         rounded_x, num_support = roundSolution(opt_x, A, b, epsilon)
-        return num_support, rounded_x, sum(abs.(opt_x) .> 1e-6), opt_x
+        rounding_end = now()
+        rounding_time = rounding_end - rounding_start
+        return num_support, rounded_x, sum(abs.(opt_x) .> 1e-6), opt_x, rounding_time
     else
         return sum(abs.(opt_x) .> 1e-6), opt_x
     end
