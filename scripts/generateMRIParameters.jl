@@ -5,7 +5,8 @@ using JSON
 
 file_path = ARGS[1]
 
-DAMPING_FACTOR = collect(2:2:10)
+#DAMPING_FACTOR = collect(2:2:10)
+DAMPING_FACTOR = [4]
 SAMPLE_RATE = collect(0.2:0.1:0.9)
 EPSILON_MULTIPLE = collect(1.5:0.5:5)
 
