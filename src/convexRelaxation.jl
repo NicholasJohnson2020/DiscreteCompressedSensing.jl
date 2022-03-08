@@ -16,10 +16,11 @@ function perspectiveRelaxation(A, b, epsilon, lambda;
     @variable(model, x[i=1:n])
     @variable(model, z[i=1:n] >= 0)
     @variable(model, theta[i=1:n] >= 0)
-    @variable(model, residual[i=1:m])
+    #@variable(model, residual[i=1:m])
 
-    @constraint(model, residual .== A * x .- b)
-    @constraint(model, sum(residual[i]^2 for i=1:m) <= epsilon)
+    #@constraint(model, residual .== A * x .- b)
+    #@constraint(model, sum(residual[i]^2 for i=1:m) <= epsilon)
+    @constraint(model, [epsilon^0.5; A*x.-b] in SecondOrderCone())
 
     @constraint(model, [i=1:n], z[i] * theta[i] >= x[i]^2)
 
@@ -63,10 +64,11 @@ function perspectiveFormulation(A, b, epsilon, lambda; solver_output=0, solver="
     @variable(model, x[i=1:n])
     @variable(model, z[i=1:n], Bin)
     @variable(model, theta[i=1:n] >= 0)
-    @variable(model, residual[i=1:m])
+    #@variable(model, residual[i=1:m])
 
-    @constraint(model, residual .== A * x .- b)
-    @constraint(model, sum(residual[i]^2 for i=1:m) <= epsilon)
+    #@constraint(model, residual .== A * x .- b)
+    #@constraint(model, sum(residual[i]^2 for i=1:m) <= epsilon)
+    @constraint(model, [epsilon^0.5; A*x.-b] in SecondOrderCone())
 
     @constraint(model, [i=1:n], z[i] * theta[i] >= x[i]^2)
 
