@@ -130,7 +130,7 @@ for slice_index in slice_indexes
 
     rounding_time = nothing
     n = size(A)[2]
-    z_fitted = zeros(n)
+    objective_value = 0
     beta_rounded = zeros(n)
     num_cuts = 0
     if METHOD_NAME == "Heuristic_Acc"
@@ -154,7 +154,7 @@ for slice_index in slice_indexes
                                        n, round_solution=true)
         beta_fitted = output[3]
         beta_rounded = output[2]
-        z_fitted = output[4]
+        objective_value = output[5]
         rounding_time = output[6]
         trial_end_time = now()
     elseif METHOD_NAME == "MISOC"
@@ -172,11 +172,11 @@ for slice_index in slice_indexes
             warm_start_data = JSON.parse(dicttxt)  # parse and transform data
             warm_start_data = JSON.parse(warm_start_data)
         end
-        upper_bound = warm_start_data[string(slice_index)]["rounded_L0_norm"][1]
+        upper_bound = warm_start_data[string(slice_index)]["rounded_solution"][1]
         lower_bound = warm_start_data[string(slice_index)]["cutting_planes_lb"][1]
         trial_start = now()
         output = CuttingPlanes(A, b_observed, EPSILON_MULTIPLE*full_error, n,
-                               lower_bound=lower_bound, upper_bound=upper_bound)
+                               lower_bound_obj=lower_bound, upper_bound_x_sol=upper_bound)
         beta_fitted = output[1]
         num_cuts = output[4]
         trial_end_time = now()
@@ -221,7 +221,8 @@ for slice_index in slice_indexes
     end
 
     if METHOD_NAME == "SOC_Relax_Rounding"
-        append!(experiment_results[slice_index]["cutting_planes_lb"], sum(z_fitted))
+        append!(experiment_results[slice_index]["cutting_planes_lb"],
+                objective_value)
     end
 
     if METHOD_NAME == "Cutting_Planes_Warm"

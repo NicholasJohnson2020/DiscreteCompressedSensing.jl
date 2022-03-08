@@ -74,6 +74,7 @@ function perspectiveFormulation(A, b, epsilon, lambda; solver_output=0, solver="
 
     optimize!(model)
 
+    println(termination_status(model))
     obj_value = objective_value(model)
     opt_x = value.(x)
     opt_z = value.(z)

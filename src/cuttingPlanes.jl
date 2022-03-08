@@ -74,7 +74,8 @@ function perspectiveFormulationSub(A, b, z, epsilon, gamma; solver_output=0, sol
 
 end;
 
-function CuttingPlanes(A, b, epsilon, lambda; solver_output=0, M=100, lower_bound=1, upper_bound=nothing)
+function CuttingPlanes(A, b, epsilon, lambda; solver_output=0, M=100,
+    lower_bound_obj=0, upper_bound_x_sol=nothing)
     (m, n) = size(A)
 
     miop = direct_model(Gurobi.Optimizer(GUROBI_ENV))
@@ -86,11 +87,16 @@ function CuttingPlanes(A, b, epsilon, lambda; solver_output=0, M=100, lower_boun
     # Objective
     @objective(miop, Min, t)
     # Constraints
-    @constraint(miop, sum(z) >= lower_bound)
-    if upper_bound != nothing
-        @constraint(miop, sum(z) <= upper_bound)
+    @constraint(miop, sum(z) >= 1)
+    if upper_bound_x_sol == nothing
+        z0 = rand(Bernoulli(0.5), n)
+    else
+        z0 = abs.(upper_bound_x_sol) .> 1e-4
+        @constraint(miop, sum(z) <= sum(z0))
     end
-    z0 = rand(Bernoulli(0.5), n)
+    if lower_bound_obj != nothing
+        @constraint(miop, t >= lower_bound_obj)
+    end
     status, output = perspectiveFormulationDual(A, b, z0, epsilon, lambda, M=M)
     if status == MOI.OPTIMAL
         (p0, grad_z0) = output
