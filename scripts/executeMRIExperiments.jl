@@ -69,7 +69,8 @@ OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "/"
 numerical_threshold = 1e-4
 
 #slice_indexes = collect(30:10:170)
-slice_indexes = [60, 100]
+#slice_indexes = [60, 100]
+slice_indexes = [60]
 
 FT_mat = npzread(INPUT_PATH * "FT_mat.npy")
 basis_mat = npzread(INPUT_PATH * "basis_mat.npy")
