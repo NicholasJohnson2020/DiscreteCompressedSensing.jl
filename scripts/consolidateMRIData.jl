@@ -2,7 +2,7 @@ using Pkg
 Pkg.activate("/home/nagj/.julia/environments/sparse_discrete")
 using JSON, LinearAlgebra, Statistics, DataFrames, CSV
 
-function processData(input_path, output_path, prefix)
+function processData(input_path, prefix)
 
    df = DataFrame(damping_factor=Float64[], sample_rate=Float64[],
                   epsilon_multiple=Float64[], L2_error=Float64[],
@@ -58,19 +58,22 @@ function processData(input_path, output_path, prefix)
 
    end
 
-   CSV.write(output_path, df)
    println("$successful_entries entries have been entered into the dataframe.")
+   return df
 end;
 
 METHOD_NAME = ARGS[1]
 INPUT_PATH = ARGS[2]
-OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "_aggrData.csv"
-
 numerical_threshold = 1e-4
 
-processData(INPUT_PATH, OUTPUT_PATH, "")
+df1 = processData(INPUT_PATH, "")
+
 if METHOD_NAME in ["BPD_Gurobi_Rounding", "SOC_Relax_Rounding"]
-   prefix = "rounded_"
    OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "_rounded_aggrData.csv"
-   processData(INPUT_PATH, OUTPUT_PATH, prefix)
-end;
+   df2 = processData(INPUT_PATH, "rounded_")
+   CSV.write(INPUT_PATH * METHOD_NAME * "_rounded_aggrData.csv", df2)
+end
+
+CSV.write(INPUT_PATH * METHOD_NAME * "_aggrData.csv", df1)
+
+;
