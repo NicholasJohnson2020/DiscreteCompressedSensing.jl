@@ -54,7 +54,7 @@ function processData(input_path, output_path, prefix)
                      Statistics.mean(exec_time),
                      Statistics.std(exec_time)]
       push!(df, current_row)
-      global successful_entries += 1
+      successful_entries += 1
 
    end
 
