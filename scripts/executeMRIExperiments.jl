@@ -172,8 +172,8 @@ for slice_index in slice_indexes
             warm_start_data = JSON.parse(dicttxt)  # parse and transform data
             warm_start_data = JSON.parse(warm_start_data)
         end
-        upper_bound = warm_start_data[slice_index]["rounded_L0_norm"][1]
-        lower_bound = warm_start_data[slice_index]["cutting_planes_lb"][1]
+        upper_bound = warm_start_data[string(slice_index)]["rounded_L0_norm"][1]
+        lower_bound = warm_start_data[string(slice_index)]["cutting_planes_lb"][1]
         trial_start = now()
         output = CuttingPlanes(A, b_observed, EPSILON_MULTIPLE*full_error, n,
                                lower_bound=lower_bound, upper_bound=upper_bound)
