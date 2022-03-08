@@ -177,7 +177,7 @@ for slice_index in slice_indexes
         lower_bound = 0
         trial_start = now()
         output = CuttingPlanes(A, b_observed, EPSILON_MULTIPLE*full_error, n,
-                               lower_bound_obj=lower_Bound, upper_bound_x_sol=upper_bound)
+                               lower_bound_obj=lower_bound, upper_bound_x_sol=upper_bound)
         beta_fitted = output[1]
         num_cuts = output[4]
         trial_end_time = now()
