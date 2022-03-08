@@ -173,10 +173,11 @@ for slice_index in slice_indexes
             warm_start_data = JSON.parse(warm_start_data)
         end
         upper_bound = warm_start_data[string(slice_index)]["rounded_solution"][1]
-        lower_bound = warm_start_data[string(slice_index)]["cutting_planes_lb"][1]
+        #lower_bound = warm_start_data[string(slice_index)]["cutting_planes_lb"][1]
+        lower_bound = 0
         trial_start = now()
         output = CuttingPlanes(A, b_observed, EPSILON_MULTIPLE*full_error, n,
-                               lower_bound_obj=lower_bound, upper_bound_x_sol=upper_bound)
+                               lower_bound_obj=lower_Bound, upper_bound_x_sol=upper_bound)
         beta_fitted = output[1]
         num_cuts = output[4]
         trial_end_time = now()
