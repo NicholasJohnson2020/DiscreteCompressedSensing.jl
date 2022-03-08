@@ -167,7 +167,7 @@ for slice_index in slice_indexes
         LOAD_PATH = INPUT_PATH * "SOC_Relax_Rounding/"
         warm_start_data = Dict()
         open(LOAD_PATH * "_" * string(TASK_ID) * ".json", "r") do f
-            global warm_start_data
+            #global warm_start_data
             dicttxt = JSON.read(f, String)  # file information to string
             warm_start_data = JSON.parse(dicttxt)  # parse and transform data
             warm_start_data = JSON.parse(warm_start_data)
