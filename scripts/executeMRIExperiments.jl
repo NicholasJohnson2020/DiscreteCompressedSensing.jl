@@ -223,7 +223,7 @@ for slice_index in slice_indexes
     append!(experiment_results[slice_index]["ssim"], ssim)
     append!(experiment_results[slice_index]["execution_time"], elapsed_time)
 
-    if METHOD_NAME in == "BPD_Gurobi_Rounding"
+    if METHOD_NAME == "BPD_Gurobi_Rounding"
 
         reconstruction = basis_mat'*beta_rounded
         L2_error = norm(image-reconstruction)^2 / norm(image)^2
