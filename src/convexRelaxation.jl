@@ -35,11 +35,23 @@ function perspectiveRelaxation(A, b, epsilon, lambda;
     opt_z = value.(z)
 
     if round_solution
-        rounding_start = now()
-        rounded_x, num_support = roundSolution(opt_z, A, b, epsilon)
-        rounding_end = now()
-        rounding_time = rounding_end - rounding_start
-        return num_support, rounded_x, opt_x, opt_z, obj_value, rounding_time
+        rounding_start_z = now()
+        rounded_xz, num_support_z = roundSolution(opt_z, A, b, epsilon)
+        rounding_end_z = now()
+        rounding_time_z = rounding_end_z - rounding_start_z
+
+        rounding_start_x = now()
+        rounded_xx, num_support_x = roundSolution(opt_x, A, b, epsilon)
+        rounding_end_x = now()
+        rounding_time_x = rounding_end_x - rounding_start_x
+
+        return (num_support_z,
+                rounded_xz,
+                num_support_x,
+                rounded_xx,
+                opt_x, opt_z, obj_value,
+                rounding_time_z,
+                rounding_time_x)
     else
         return opt_x, opt_z, obj_value
     end

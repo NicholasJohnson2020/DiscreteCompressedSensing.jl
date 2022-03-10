@@ -93,7 +93,7 @@ for slice_index in slice_indexes
     slice_results["ssim"] = []
     slice_results["execution_time"] = []
 
-    if METHOD_NAME in ["BPD_Gurobi_Rounding", "SOC_Relax_Rounding"]
+    if METHOD_NAME == "BPD_Gurobi_Rounding"
         slice_results["rounded_solution"] = []
         slice_results["rounded_L2_error"] = []
         slice_results["rounded_L1_error"] = []
@@ -103,6 +103,20 @@ for slice_index in slice_indexes
     end
 
     if METHOD_NAME == "SOC_Relax_Rounding"
+        slice_results["rounded_z_solution"] = []
+        slice_results["rounded_z_L2_error"] = []
+        slice_results["rounded_z_L1_error"] = []
+        slice_results["rounded_z_L0_norm"] = []
+        slice_results["rounded_z_ssim"] = []
+        slice_results["rounded_z_execution_time"] = []
+
+        slice_results["rounded_x_solution"] = []
+        slice_results["rounded_x_L2_error"] = []
+        slice_results["rounded_x_L1_error"] = []
+        slice_results["rounded_x_L0_norm"] = []
+        slice_results["rounded_x_ssim"] = []
+        slice_results["rounded_x_execution_time"] = []
+
         slice_results["cutting_planes_lb"] = []
     end
 
@@ -130,9 +144,14 @@ for slice_index in slice_indexes
     full_error = norm(A*x_full-b_observed)^2
 
     rounding_time = nothing
+    rounding_time_z = nothing
+    rounding_time_x = nothing
     n = size(A)[2]
+    gamma = n^2
     objective_value = 0
     beta_rounded = zeros(n)
+    beta_rounded_z = zeros(n)
+    beta_rounded_x = zeros(n)
     num_cuts = 0
     if METHOD_NAME == "Heuristic_Acc"
         trial_start = now()
@@ -153,16 +172,18 @@ for slice_index in slice_indexes
         output = perspectiveRelaxation(A, b_observed,
                                        EPSILON_MULTIPLE*full_error,
                                        n, round_solution=true)
-        beta_fitted = output[3]
-        beta_rounded = output[2]
-        objective_value = output[5]
-        rounding_time = output[6]
+        beta_fitted = output[5]
+        beta_rounded_z = output[2]
+        beta_rounded_x = output[4]
+        objective_value = output[7]
+        rounding_time_x = output[8]
+        rounding_time_z = output[9]
         trial_end_time = now()
     elseif METHOD_NAME == "MISOC"
         trial_start = now()
         beta_fitted, _, _ = perspectiveFormulation(A, b_observed,
                                                    EPSILON_MULTIPLE*full_error,
-                                                   n)
+                                                   n^2)
         trial_end_time = now()
     elseif METHOD_NAME == "Cutting_Planes_Warm"
         LOAD_PATH = INPUT_PATH * "SOC_Relax_Rounding/"
@@ -174,10 +195,9 @@ for slice_index in slice_indexes
             warm_start_data = JSON.parse(warm_start_data)
         end
         upper_bound = warm_start_data[string(slice_index)]["rounded_solution"][1]
-        #lower_bound = warm_start_data[string(slice_index)]["cutting_planes_lb"][1]
-        lower_bound = 0
+        lower_bound = warm_start_data[string(slice_index)]["cutting_planes_lb"][1]
         trial_start = now()
-        output = CuttingPlanes(A, b_observed, EPSILON_MULTIPLE*full_error, n,
+        output = CuttingPlanes(A, b_observed, EPSILON_MULTIPLE*full_error, n^2,
                                lower_bound_obj=lower_bound, upper_bound_x_sol=upper_bound)
         beta_fitted = output[1]
         num_cuts = output[4]
@@ -203,7 +223,7 @@ for slice_index in slice_indexes
     append!(experiment_results[slice_index]["ssim"], ssim)
     append!(experiment_results[slice_index]["execution_time"], elapsed_time)
 
-    if METHOD_NAME in ["BPD_Gurobi_Rounding", "SOC_Relax_Rounding"]
+    if METHOD_NAME in == "BPD_Gurobi_Rounding"
 
         reconstruction = basis_mat'*beta_rounded
         L2_error = norm(image-reconstruction)^2 / norm(image)^2
@@ -223,6 +243,38 @@ for slice_index in slice_indexes
     end
 
     if METHOD_NAME == "SOC_Relax_Rounding"
+        reconstruction = basis_mat'*beta_rounded_z
+        L2_error = norm(image-reconstruction)^2 / norm(image)^2
+        L1_error = norm(image-reconstruction, 1) / norm(image, 1)
+        L0_norm = sum(abs.(beta_rounded_z) .> numerical_threshold)
+        n = size(beta_rounded_z)[1]
+        img_width = Int64(n^0.5)
+        ssim = assess_ssim(reshape(image, img_width, img_width),
+                           reshape(reconstruction, img_width, img_width))
+
+        append!(experiment_results[slice_index]["rounded_z_solution"], [beta_rounded_z])
+        append!(experiment_results[slice_index]["rounded_z_L2_error"], L2_error)
+        append!(experiment_results[slice_index]["rounded_z_L1_error"], L1_error)
+        append!(experiment_results[slice_index]["rounded_z_L0_norm"], L0_norm)
+        append!(experiment_results[slice_index]["rounded_z_ssim"], ssim)
+        append!(experiment_results[slice_index]["rounded_z_execution_time"], Dates.value(rounding_time_z))
+
+        reconstruction = basis_mat'*beta_rounded_x
+        L2_error = norm(image-reconstruction)^2 / norm(image)^2
+        L1_error = norm(image-reconstruction, 1) / norm(image, 1)
+        L0_norm = sum(abs.(beta_rounded_x) .> numerical_threshold)
+        n = size(beta_rounded_x)[1]
+        img_width = Int64(n^0.5)
+        ssim = assess_ssim(reshape(image, img_width, img_width),
+                           reshape(reconstruction, img_width, img_width))
+
+        append!(experiment_results[slice_index]["rounded_x_solution"], [beta_rounded_x])
+        append!(experiment_results[slice_index]["rounded_x_L2_error"], L2_error)
+        append!(experiment_results[slice_index]["rounded_x_L1_error"], L1_error)
+        append!(experiment_results[slice_index]["rounded_x_L0_norm"], L0_norm)
+        append!(experiment_results[slice_index]["rounded_x_ssim"], ssim)
+        append!(experiment_results[slice_index]["rounded_x_execution_time"], Dates.value(rounding_time_x))
+
         append!(experiment_results[slice_index]["cutting_planes_lb"],
                 objective_value)
     end
