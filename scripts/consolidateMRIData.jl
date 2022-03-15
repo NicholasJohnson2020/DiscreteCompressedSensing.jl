@@ -74,7 +74,7 @@ if METHOD_NAME == "BPD_Gurobi_Rounding"
    CSV.write(INPUT_PATH * METHOD_NAME * "_rounded_aggrData.csv", df2)
 end
 
-if METHOD_NAMES == "SOC_Relax_Rounding"
+if METHOD_NAME == "SOC_Relax_Rounding"
    OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "_rounded_x_aggrData.csv"
    df2 = processData(INPUT_PATH, "rounded_x_")
    OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "_rounded_z_aggrData.csv"
