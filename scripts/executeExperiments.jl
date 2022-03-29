@@ -143,7 +143,7 @@ for trial_num=1:NUM_TRIALS
                                                    solver="Gurobi",
                                                    round_solution=false)
             trial_end_time = now()
-        elseif METHOD_NAME == "BPD_Rounded"
+        elseif method_name == "BPD_Rounded"
             trial_start = now()
             output = basisPursuitDenoising(X, Y, epsilon * full_error,
                                            solver="Gurobi", round_solution=true)
@@ -183,7 +183,7 @@ for trial_num=1:NUM_TRIALS
             beta_fitted, _, _ = perspectiveRelaxation(X, Y, epsilon*full_error,
                                                       gamma, round_solution=false)
             trial_end_time = now()
-        elseif METHOD_NAME == "SOC_Relax_Rounded"
+        elseif method_name == "SOC_Relax_Rounded"
             trial_start = now()
             output = perspectiveRelaxation(A, b_observed, epsilon*full_error,
                                            gamma, round_solution=true)
