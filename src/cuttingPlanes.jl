@@ -74,7 +74,7 @@ function perspectiveFormulationSub(A, b, z, epsilon, gamma; solver_output=0, sol
 
 end;
 
-function CuttingPlanes(A, b, epsilon, lambda; solver_output=0, M=100,
+function CuttingPlanesV1(A, b, epsilon, lambda; solver_output=0, M=100,
     lower_bound_obj=0, upper_bound_x_sol=nothing)
     (m, n) = size(A)
 
@@ -124,6 +124,7 @@ function CuttingPlanes(A, b, epsilon, lambda; solver_output=0, M=100,
         z_val = callback_value.(cb_data, z)
         t_val = callback_value(cb_data, t)
         status, output = perspectiveFormulationDual(A, b, z_val, epsilon, lambda, M=M)
+        num_calls = size(cb_calls)[1]
         if status == MOI.OPTIMAL
             (obj, grad_z) = output
             offset = sum(grad_z .* z_val)
