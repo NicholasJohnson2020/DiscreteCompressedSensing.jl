@@ -26,7 +26,7 @@ end
 
 file_path = ARGS[1]
 
-NUM_TRIALS_PER_CONFIG = 10
+NUM_TRIALS_PER_CONFIG = 5
 N = collect(100:100:1000)
 P = collect(20:10:80)
 K = collect(4:2:10)
