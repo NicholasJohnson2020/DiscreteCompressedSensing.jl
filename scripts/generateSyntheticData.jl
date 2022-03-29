@@ -26,10 +26,10 @@ end
 
 file_path = ARGS[1]
 
-NUM_TRIALS_PER_CONFIG = 5
-N = collect(50:50:200)
-P = collect(10:5:20)
-K = collect(4:2:8)
+NUM_TRIALS_PER_CONFIG = 10
+N = collect(100:100:1000)
+P = collect(20:10:80)
+K = collect(4:2:10)
 noise_to_signal = collect(0.8:0.1:1.2)
 
 sigma = 1
