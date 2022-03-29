@@ -31,8 +31,8 @@ function LineSearch(A, b, z, epsilon, gamma;
     z_ones = findall(x -> x>0.5, z)
     local_A = A[:, z_ones]
 
-    local_A = convert(Array{Any,2}, local_A)
-    b = convert(Array{Any, 1}, b)
+    local_A = convert(Array{Float64,2}, local_A)
+    b = convert(Array{Float64, 1}, b)
 
     min_x = local_A \ b
     if norm(local_A*min_x-b)^2 > epsilon
