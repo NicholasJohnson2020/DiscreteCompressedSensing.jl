@@ -185,7 +185,7 @@ for trial_num=1:NUM_TRIALS
             trial_end_time = now()
         elseif method_name == "SOC_Relax_Rounded"
             trial_start = now()
-            output = perspectiveRelaxation(A, b_observed, epsilon*full_error,
+            output = perspectiveRelaxation(X, Y, epsilon*full_error,
                                            gamma, round_solution=true)
             beta_fitted = output[5]
             beta_rounded_z = output[2]
