@@ -206,9 +206,9 @@ for trial_num=1:NUM_TRIALS
             num_cuts = output[4]
             trial_end_time = now()
         elseif method_name == "Cutting_Planes_Warm"
-            LOAD_PATH = INPUT_PATH * "Heuristic/"
+            load_path = input_path * "Heuristic/"
             warm_start_data = Dict()
-            open(LOAD_PATH * "_" * string(TASK_ID) * ".json", "r") do f
+            open(load_path * "_" * string(TASK_ID) * ".json", "r") do f
                 #global warm_start_data
                 dicttxt = JSON.read(f, String)  # file information to string
                 warm_start_data = JSON.parse(dicttxt)  # parse and transform data
