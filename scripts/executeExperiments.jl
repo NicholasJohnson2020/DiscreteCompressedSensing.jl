@@ -214,7 +214,7 @@ for trial_num=1:NUM_TRIALS
                 warm_start_data = JSON.parse(dicttxt)  # parse and transform data
                 warm_start_data = JSON.parse(warm_start_data)
             end
-            upper_bound = warm_start_data[string(slice_index)]["solution"][trial_num]
+            upper_bound = warm_start_data[string(epsilon)]["solution"][trial_num]
             trial_start = now()
             output = CuttingPlanes(X, Y, epsilon * full_error, gamma,
                                    upper_bound_x_sol=upper_bound)
