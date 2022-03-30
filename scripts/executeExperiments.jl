@@ -21,7 +21,8 @@ numerical_threshold = 1e-4
 method_name = ARGS[1]
 input_path = ARGS[2]
 output_path = ARGS[3]
-task_ID = ARGS[4]
+warm_start_path = ARGS[4]
+task_ID = ARGS[5]
 
 valid_methods = ["BPD", "BPD_Rounded", "Exact_Naive", "Exact_Binary",
                  "Exact_Naive_Warm", "Exact_Binary_Warm", "MISOC", "SOC_Relax",
@@ -206,9 +207,8 @@ for trial_num=1:NUM_TRIALS
             num_cuts = output[4]
             trial_end_time = now()
         elseif method_name == "Cutting_Planes_Warm"
-            load_path = input_path * "Heuristic/"
             warm_start_data = Dict()
-            open(load_path * "_" * string(task_ID) * ".json", "r") do f
+            open(warm_start_path * "_" * string(task_ID) * ".json", "r") do f
                 #global warm_start_data
                 dicttxt = JSON.read(f, String)  # file information to string
                 warm_start_data = JSON.parse(dicttxt)  # parse and transform data
