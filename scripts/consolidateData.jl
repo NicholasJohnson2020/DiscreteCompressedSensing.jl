@@ -42,7 +42,7 @@ function processData(input_path, prefix)
                         Statistics.mean(exp_data[string(epsilon)]["false_discovery"]),
                         Statistics.mean(exp_data[string(epsilon)]["execution_time"])]
          push!(df, current_row)
-         global successful_entries += 1
+         successful_entries += 1
 
       end
 
