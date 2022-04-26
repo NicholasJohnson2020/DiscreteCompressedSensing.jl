@@ -7,7 +7,8 @@ function regobj(X, Y, s, gamma)
     n = length(Y)
     denom = 2n
     Xs = X[:, indices]
-    alpha = Y - Xs * (inv(I / gamma + Xs' * Xs) * (Xs'* Y))
+    temp = (I / gamma + Xs' * Xs) \ (Xs'* Y)
+    alpha = Y - Xs * temp
     val = dot(Y, alpha) / denom
     tmp = X' * alpha
     grad_s = -gamma .* tmp .^ 2 ./ denom
@@ -80,7 +81,7 @@ function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10,
     (m, n) = size(A)
     gamma = gamma_init * n
 
-    x_full = pinv(A'*A)*A'*b
+    x_full = A \ b
     full_error = norm(A*x_full-b)^2
 
     if full_error > epsilon
@@ -131,7 +132,7 @@ function exactCompressedSensingBinSearch(A, b, epsilon; gamma_init=1,
     (m, n) = size(A)
     gamma = gamma_init * n
 
-    x_full = pinv(A'*A)*A'*b
+    x_full = A \ b
     full_error = norm(A*x_full-b)^2
 
     if full_error > epsilon
