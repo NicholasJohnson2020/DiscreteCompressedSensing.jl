@@ -204,7 +204,7 @@ for slice_index in slice_indexes
         beta_fitted = output[1]
         num_cuts = output[4]
         trial_end_time = now()
-    elseif method_name == "Exact_Naive_Warm"
+    elseif METHOD_NAME == "Exact_Naive_Warm"
         LOAD_PATH = INPUT_PATH * "Heuristic_Acc/"
         warm_start_data = Dict()
         open(LOAD_PATH * "_" * string(TASK_ID) * ".json", "r") do f
@@ -220,7 +220,7 @@ for slice_index in slice_indexes
                                                 EPSILON_MULTIPLE*full_error,
                                                 warm_start_params=(warm_k, warm_beta))
         trial_end_time = now()
-    elseif method_name == "Exact_Binary_Warm"
+    elseif METHOD_NAME == "Exact_Binary_Warm"
         LOAD_PATH = INPUT_PATH * "Heuristic_Acc/"
         warm_start_data = Dict()
         open(LOAD_PATH * "_" * string(TASK_ID) * ".json", "r") do f
