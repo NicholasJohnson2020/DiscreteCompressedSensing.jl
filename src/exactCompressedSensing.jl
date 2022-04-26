@@ -33,6 +33,7 @@ function SparseRegression(X, Y, gamma, k; solver_output=1)
     p0, grad_s0 = regobj(X, Y, s0, gamma)
     @constraint(miop, t >= p0 + dot(grad_s0, s - s0))
     cb_calls = Cint[]
+    s_hist = []
     function outer_approximation(cb_data, cb_where::Cint)
         push!(cb_calls, cb_where)
         if cb_where != GRB_CB_MIPSOL && cb_where != GRB_CB_MIPNODE
@@ -48,6 +49,7 @@ function SparseRegression(X, Y, gamma, k; solver_output=1)
         Gurobi.load_callback_variable_primal(cb_data, cb_where)
         s_val = callback_value.(cb_data, s)
         t_val = callback_value(cb_data, t)
+        append!(s_hist, [s_val])
         obj, grad_s = regobj(X,Y, s_val, gamma)
         offset = sum(grad_s .* s_val)
         if t_val < obj
@@ -69,7 +71,7 @@ function SparseRegression(X, Y, gamma, k; solver_output=1)
     X_s = real(X_s)
 
     beta[s_nonzeros] = gamma * X_s' * (Y - X_s * ((I / gamma + X_s' * X_s) \ (X_s'* Y)))
-    return s_opt, beta, s_nonzeros
+    return s_opt, beta, s_nonzeros, size(cb_calls)[1], s_hist
 end;
 
 function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10,
@@ -120,7 +122,7 @@ function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10,
 end;
 
 function exactCompressedSensingBinSearch(A, b, epsilon; gamma_init=1,
-    gamma_max=1e10, warm_start=true, verbose=false)
+    gamma_max=1e10, warm_start=true, verbose=false, warm_start_params=nothing)
 
     (m, n) = size(A)
     gamma = gamma_init * n
@@ -132,12 +134,18 @@ function exactCompressedSensingBinSearch(A, b, epsilon; gamma_init=1,
         return false, nothing
     end
 
-    if warm_start
-        upper_beta, upper_support = exactCompressedSensingHeuristicAcc(A, b, epsilon)
+    if warm_start_params == nothing
+        if warm_start
+            upper_beta, upper_support = exactCompressedSensingHeuristicAcc(A, b, epsilon)
+        else
+            upper_support = n
+            upper_beta = x_full
+        end
     else
-        upper_support = n
-        upper_beta = x_full
+        upper_support = warm_start_parmas[1]
+        upper_beta = warm_start_params[2]
     end
+    
     upper_gamma = gamma
 
     lower_support = 1

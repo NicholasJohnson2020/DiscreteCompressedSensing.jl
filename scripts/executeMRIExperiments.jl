@@ -48,7 +48,9 @@ valid_methods = ["Heuristic_Acc",
                  "BPD_Gurobi_Rounding",
                  "SOC_Relax_Rounding",
                  "MISOC",
-                 "Cutting_Planes_Warm"]
+                 "Cutting_Planes_Warm",
+                 "Exact_Naive_Warm",
+                 "Exact_Binary_Warm"]
 
 @assert METHOD_NAME in valid_methods
 
@@ -201,6 +203,38 @@ for slice_index in slice_indexes
                                lower_bound_obj=lower_bound, upper_bound_x_sol=upper_bound)
         beta_fitted = output[1]
         num_cuts = output[4]
+        trial_end_time = now()
+    elseif method_name == "Exact_Naive_Warm"
+        LOAD_PATH = INPUT_PATH * "Heuristic_Acc/"
+        warm_start_data = Dict()
+        open(LOAD_PATH * "_" * string(TASK_ID) * ".json", "r") do f
+            #global warm_start_data
+            dicttxt = JSON.read(f, String)  # file information to string
+            warm_start_data = JSON.parse(dicttxt)  # parse and transform data
+            warm_start_data = JSON.parse(warm_start_data)
+        end
+        warm_beta = warm_start_data[string(slice_index)]["solution"][1]
+        warm_k = warm_start_data[string(slice_index)]["L0_norm"][1]
+        trial_start = now()
+        _, beta_fitted = exactCompressedSensing(A, b_observed,
+                                                EPSILON_MULTIPLE*full_error,
+                                                warm_start_params=(warm_k, warm_beta))
+        trial_end_time = now()
+    elseif method_name == "Exact_Binary_Warm"
+        LOAD_PATH = INPUT_PATH * "Heuristic_Acc/"
+        warm_start_data = Dict()
+        open(LOAD_PATH * "_" * string(TASK_ID) * ".json", "r") do f
+            #global warm_start_data
+            dicttxt = JSON.read(f, String)  # file information to string
+            warm_start_data = JSON.parse(dicttxt)  # parse and transform data
+            warm_start_data = JSON.parse(warm_start_data)
+        end
+        warm_beta = warm_start_data[string(slice_index)]["solution"][1]
+        warm_k = warm_start_data[string(slice_index)]["L0_norm"][1]
+        trial_start = now()
+        _, beta_fitted = exactCompressedSensingBinSearch(A, b_observed,
+                                                    EPSILON_MULTIPLE*full_error,
+                                                    warm_start_params=(warm_k, warm_beta))
         trial_end_time = now()
     end
 
