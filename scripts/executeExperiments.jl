@@ -245,92 +245,91 @@ for trial_num=1:NUM_TRIALS
         append!(experiment_results[epsilon]["execution_time"], elapsed_time)
 
         if method_name == "BPD_Rounded"
-            residual_error = norm(X * beta_rounded - Y)^2
-            beta_error = norm(true_beta - beta_rounded)^2 / norm(true_beta)^2
-            fitted_k = sum(abs.(beta_rounded) .> numerical_threshold)
-            true_discovery = sum(abs.(beta_rounded[abs.(true_beta) .> 1e-6]) .> numerical_threshold)
-            true_discovery /= true_k
-            discovered_indices = abs.(beta_rounded) .>numerical_threshold
-            if fitted_k == 0
-                false_discovery = 0
+            rounded_residual_error = norm(X * beta_rounded - Y)^2
+            rounded_beta_error = norm(true_beta - beta_rounded)^2 / norm(true_beta)^2
+            rounded_fitted_k = sum(abs.(beta_rounded) .> numerical_threshold)
+            rounded_true_discovery = sum(abs.(beta_rounded[abs.(true_beta) .> 1e-6]) .> numerical_threshold)
+            rounded_true_discovery /= true_k
+            rounded_discovered_indices = abs.(beta_rounded) .>numerical_threshold
+            if rounded_fitted_k == 0
+                rounded_false_discovery = 0
             else
-                false_discovery = sum(abs.(true_beta[discovered_indices]) .< 1e-6) / sum(discovered_indices)
+                rounded_false_discovery = sum(abs.(true_beta[rounded_discovered_indices]) .< 1e-6) / sum(rounded_discovered_indices)
             end
-            elapsed_time = Dates.value(rounding_time)
+            rounded_elapsed_time = Dates.value(rounding_time)
 
             append!(experiment_results[epsilon]["rounded_solution"],
                     [beta_rounded])
             append!(experiment_results[epsilon]["rounded_residual_error"],
-                    residual_error)
+                    rounded_residual_error)
             append!(experiment_results[epsilon]["rounded_beta_error"],
-                    beta_error)
+                    rounded_beta_error)
             append!(experiment_results[epsilon]["rounded_fitted_k"],
-                    fitted_k)
+                    rounded_fitted_k)
             append!(experiment_results[epsilon]["rounded_true_discovery"],
-                    true_discovery)
+                    rounded_true_discovery)
             append!(experiment_results[epsilon]["rounded_false_discovery"],
-                    false_discovery)
+                    rounded_false_discovery)
             append!(experiment_results[epsilon]["rounded_execution_time"],
-                    elapsed_time)
-
+                    rounded_elapsed_time)
         end
 
         if method_name == "SOC_Relax_Rounded"
-            residual_error = norm(X * beta_rounded_x - Y)^2
-            beta_error = norm(true_beta - beta_rounded_x)^2 / norm(true_beta)^2
-            fitted_k = sum(abs.(beta_rounded_x) .> numerical_threshold)
-            true_discovery = sum(abs.(beta_rounded_x[abs.(true_beta) .> 1e-6]) .> numerical_threshold)
-            true_discovery /= true_k
-            discovered_indices = abs.(beta_rounded_x) .>numerical_threshold
-            if fitted_k == 0
-                false_discovery = 0
+            x_residual_error = norm(X * beta_rounded_x - Y)^2
+            x_beta_error = norm(true_beta - beta_rounded_x)^2 / norm(true_beta)^2
+            x_fitted_k = sum(abs.(beta_rounded_x) .> numerical_threshold)
+            x_true_discovery = sum(abs.(beta_rounded_x[abs.(true_beta) .> 1e-6]) .> numerical_threshold)
+            x_true_discovery /= true_k
+            x_discovered_indices = abs.(beta_rounded_x) .>numerical_threshold
+            if x_fitted_k == 0
+                x_false_discovery = 0
             else
-                false_discovery = sum(abs.(true_beta[discovered_indices]) .< 1e-6) / sum(discovered_indices)
+                x_false_discovery = sum(abs.(true_beta[x_discovered_indices]) .< 1e-6) / sum(x_discovered_indices)
             end
-            elapsed_time = Dates.value(rounding_time_x)
+            x_elapsed_time = Dates.value(rounding_time_x)
 
             append!(experiment_results[epsilon]["rounded_x_solution"],
-                    [beta_rounded])
+                    [beta_rounded_x])
             append!(experiment_results[epsilon]["rounded_x_residual_error"],
-                    residual_error)
+                    x_residual_error)
             append!(experiment_results[epsilon]["rounded_x_beta_error"],
-                    beta_error)
+                    x_beta_error)
             append!(experiment_results[epsilon]["rounded_x_fitted_k"],
-                    fitted_k)
+                    x_fitted_k)
             append!(experiment_results[epsilon]["rounded_x_true_discovery"],
-                    true_discovery)
+                    x_true_discovery)
             append!(experiment_results[epsilon]["rounded_x_false_discovery"],
-                    false_discovery)
+                    x_false_discovery)
             append!(experiment_results[epsilon]["rounded_x_execution_time"],
-                    elapsed_time)
+                    x_elapsed_time)
 
-            residual_error = norm(X * beta_rounded_z - Y)^2
-            beta_error = norm(true_beta - beta_rounded_z)^2 / norm(true_beta)^2
-            fitted_k = sum(abs.(beta_rounded_z) .> numerical_threshold)
-            true_discovery = sum(abs.(beta_rounded_z[abs.(true_beta) .> 1e-6]) .> numerical_threshold)
-            true_discovery /= true_k
-            discovered_indices = abs.(beta_rounded_z) .>numerical_threshold
-            if fitted_k == 0
-                false_discovery = 0
+            z_residual_error = norm(X * beta_rounded_z - Y)^2
+            z_beta_error = norm(true_beta - beta_rounded_z)^2 / norm(true_beta)^2
+            z_fitted_k = sum(abs.(beta_rounded_z) .> numerical_threshold)
+            z_true_discovery = sum(abs.(beta_rounded_z[abs.(true_beta) .> 1e-6]) .> numerical_threshold)
+            z_true_discovery /= true_k
+            z_discovered_indices = abs.(beta_rounded_z) .>numerical_threshold
+            if z_fitted_k == 0
+                z_false_discovery = 0
             else
-                false_discovery = sum(abs.(true_beta[discovered_indices]) .< 1e-6) / sum(discovered_indices)
+                z_false_discovery = sum(abs.(true_beta[z_discovered_indices]) .< 1e-6) / sum(z_discovered_indices)
             end
-            elapsed_time = Dates.value(rounding_time_z)
+            z_elapsed_time = Dates.value(rounding_time_z)
 
             append!(experiment_results[epsilon]["rounded_z_solution"],
-                    [beta_rounded])
+                    [beta_rounded_z])
             append!(experiment_results[epsilon]["rounded_z_residual_error"],
-                    residual_error)
+                    z_residual_error)
             append!(experiment_results[epsilon]["rounded_z_beta_error"],
-                    beta_error)
+                    z_beta_error)
             append!(experiment_results[epsilon]["rounded_z_fitted_k"],
-                    fitted_k)
+                    z_fitted_k)
             append!(experiment_results[epsilon]["rounded_z_true_discovery"],
-                    true_discovery)
+                    z_true_discovery)
             append!(experiment_results[epsilon]["rounded_z_false_discovery"],
-                    false_discovery)
+                    z_false_discovery)
             append!(experiment_results[epsilon]["rounded_z_execution_time"],
-                    elapsed_time)
+                    z_elapsed_time)
         end
 
         if method_name in ["Cutting_Planes", "Cutting_Planes_Warm"]

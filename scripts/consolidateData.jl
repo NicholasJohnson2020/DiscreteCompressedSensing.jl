@@ -61,15 +61,12 @@ numerical_threshold = 1e-4
 df1 = processData(INPUT_PATH, "")
 
 if METHOD_NAME == "BPD_Gurobi_Rounding"
-   OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "_rounded_aggrData.csv"
    df2 = processData(INPUT_PATH, "rounded_")
    CSV.write(INPUT_PATH * METHOD_NAME * "_rounded_aggrData.csv", df2)
 end
 
 if METHOD_NAME == "SOC_Relax_Rounding"
-   OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "_rounded_x_aggrData.csv"
    df2 = processData(INPUT_PATH, "rounded_x_")
-   OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "_rounded_z_aggrData.csv"
    df3 = processData(INPUT_PATH, "rounded_z_")
    CSV.write(INPUT_PATH * METHOD_NAME * "_rounded_x_aggrData.csv", df2)
    CSV.write(INPUT_PATH * METHOD_NAME * "_rounded_z_aggrData.csv", df3)
