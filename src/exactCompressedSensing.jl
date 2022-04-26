@@ -95,7 +95,7 @@ function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10,
             upper_beta = x_full
         end
     else
-        upper_support = warm_start_parmas[1]
+        upper_support = warm_start_params[1]
         upper_beta = warm_start_params[2]
     end
 
@@ -146,7 +146,7 @@ function exactCompressedSensingBinSearch(A, b, epsilon; gamma_init=1,
             upper_beta = x_full
         end
     else
-        upper_support = warm_start_parmas[1]
+        upper_support = warm_start_params[1]
         upper_beta = warm_start_params[2]
     end
 
