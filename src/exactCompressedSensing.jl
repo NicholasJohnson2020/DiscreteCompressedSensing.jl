@@ -89,14 +89,14 @@ function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10,
 
     if warm_start_params == nothing
         if warm_start
-            upper_beta, upper_support = exactCompressedSensingHeuristicAcc(A, b, epsilon)
+            best_beta, best_support = exactCompressedSensingHeuristicAcc(A, b, epsilon)
         else
-            upper_support = n
-            upper_beta = x_full
+            best_support = n
+            best_beta = x_full
         end
     else
-        upper_support = warm_start_params[1]
-        upper_beta = warm_start_params[2]
+        best_support = warm_start_params[1]
+        best_beta = warm_start_params[2]
     end
 
     while gamma <= gamma_max
