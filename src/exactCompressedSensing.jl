@@ -75,7 +75,7 @@ function SparseRegression(X, Y, gamma, k; solver_output=1)
 end;
 
 function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10,
-                                warm_start=true)
+                                warm_start=true, warm_start_params=nothing)
 
     (m, n) = size(A)
     gamma = gamma_init * n
@@ -87,12 +87,16 @@ function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10,
         return false, nothing
     end
 
-    if warm_start
-        best_beta, best_support = exactCompressedSensingHeuristicAcc(A, b, epsilon)
-        @assert best_support <= n
+    if warm_start_params == nothing
+        if warm_start
+            upper_beta, upper_support = exactCompressedSensingHeuristicAcc(A, b, epsilon)
+        else
+            upper_support = n
+            upper_beta = x_full
+        end
     else
-        best_support = n
-        best_beta = x_full
+        upper_support = warm_start_parmas[1]
+        upper_beta = warm_start_params[2]
     end
 
     while gamma <= gamma_max
@@ -145,7 +149,7 @@ function exactCompressedSensingBinSearch(A, b, epsilon; gamma_init=1,
         upper_support = warm_start_parmas[1]
         upper_beta = warm_start_params[2]
     end
-    
+
     upper_gamma = gamma
 
     lower_support = 1
