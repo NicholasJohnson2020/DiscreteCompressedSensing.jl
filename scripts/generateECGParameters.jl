@@ -15,7 +15,7 @@ param_dict = Dict()
 for num in NUM_CR
 
     global config_count += 1
-    M = Int64(floor((1-num_CR*5*0.01)*N))
+    M = Int64(floor((1-num*5*0.01)*N))
     CR = 1 - M/N
     param_dict[config_count] = Dict("M"=>M,
                                     "CR"=>CR)
