@@ -234,7 +234,7 @@ for patientID in patient_indices
         n = size(beta_rounded)[1]
         img_width = Int64(n^0.5)
 
-        append!(experiment_results[patientID]]["rounded_solution"], [beta_rounded])
+        append!(experiment_results[patientID]["rounded_solution"], [beta_rounded])
         append!(experiment_results[patientID]["rounded_L2_error"], L2_error)
         append!(experiment_results[patientID]["rounded_L1_error"], L1_error)
         append!(experiment_results[patientID]["rounded_L0_norm"], L0_norm)
