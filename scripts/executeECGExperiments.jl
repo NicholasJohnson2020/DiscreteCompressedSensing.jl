@@ -115,6 +115,7 @@ for patientID in patient_indices
         ecg_signal = matread(ecg_path)["ecg74"]
     else
         ecg_signal = matread(ecg_path)[ecg_label]
+    end
 
     b_observed = sensing_mat * ecg_signal
     epsilon = EPSILON_MULTIPLE * norm(b_observed)^2
