@@ -40,7 +40,7 @@ patient_indices = collect(1:100)
 
 sensing_mat_path = INPUT_PATH * "Copmare_ECG_CS-master/BernoulliSample.mat"
 sensing_mat = matread(sensing_mat_path)["BernoulliSample"][1:M, :]
-dim = size(sensing_mat)[1]
+dim = size(sensing_mat)[2]
 
 wavelet_mat = zeros(dim, dim)
 for i=1:dim
