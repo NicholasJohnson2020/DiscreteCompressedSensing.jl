@@ -111,7 +111,10 @@ for patientID in patient_indices
 
     ecg_label = "ecg" * string(patientID)
     ecg_path = INPUT_PATH * "Copmare_ECG_CS-master/data/" * ecg_label * ".mat"
-    ecg_signal = matread(ecg_path)[ecg_label];
+    if patientID == 75
+        ecg_signal = matread(ecg_path)["ecg74"]
+    else
+        ecg_signal = matread(ecg_path)[ecg_label]
 
     b_observed = sensing_mat * ecg_signal
     epsilon = EPSILON_MULTIPLE * norm(b_observed)^2
