@@ -59,7 +59,7 @@ experiment_results["Method"] = METHOD_NAME
 experiment_results["N"] = dim
 experiment_results["M"] = M
 experiment_results["CR"] = CR
-expeirment_results["EPSILON"] = EPSILON_MULTIPLE
+experiment_results["EPSILON"] = EPSILON_MULTIPLE
 experiment_results["Indices"] = patient_indices
 
 for patientID in patient_indices
