@@ -172,7 +172,7 @@ for patientID in patient_indices
             warm_start_data = JSON.parse(dicttxt)  # parse and transform data
             warm_start_data = JSON.parse(warm_start_data)
         end
-        upper_bound = warm_start_data[string(patientID)]["rounded_solution"][1]
+        upper_bound = warm_start_data[string(patientID)]["rounded_z_solution"][1]
         lower_bound = warm_start_data[string(patientID)]["cutting_planes_lb"][1]
         trial_start = now()
         output = CuttingPlanes(A, b_observed, epsilon, n^2,
