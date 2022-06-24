@@ -29,10 +29,13 @@ function LineSearch(A, b, z, epsilon, gamma;
 
     (m, n) = size(A)
     z_ones = findall(x -> x>0.5, z)
+    z_zeros = findall(x -> x<0.5, z)
+
     local_A = A[:, z_ones]
 
     local_A = convert(Array{Float64,2}, local_A)
-    b = convert(Array{Float64, 1}, b)
+
+    b = vec(b)
 
     min_x = local_A \ b
     if norm(local_A*min_x-b)^2 > epsilon
@@ -78,13 +81,13 @@ function LineSearch(A, b, z, epsilon, gamma;
     end
 
     fit_grad = derivativeEval(mid_lambda, U, sigma, V, b, local_A, nu)
-    fit_x = V*Diagonal(sigma ./ (sigma.^2 .+ 1/mid_lambda))*U'*b
+    fit_x = V*Diagonal(sigma ./ (sigma.^2 .+ 1/mid_lambda))*nu
 
     opt_x = zeros(n)
     opt_grad = ones(n)
     for i=1:size(z_ones)[1]
         opt_x[z_ones[i]] = fit_x[i]
-        opt_grad[z_ones[i]] += fit_grad[i]
+        opt_grad[z_ones[i]] += fit_grad[i] / gamma
     end
 
     return (true, size(z_ones)[1] + norm(opt_x)^2/gamma, opt_grad, opt_x)
@@ -92,7 +95,7 @@ function LineSearch(A, b, z, epsilon, gamma;
 end;
 
 function CuttingPlanes(A, b, epsilon, lambda; solver_output=0,
-    lower_bound_obj=0, upper_bound_x_sol=nothing)
+    sparsity_lower_bound=1, lower_bound_obj=0, upper_bound_x_sol=nothing)
     (m, n) = size(A)
 
     miop = direct_model(Gurobi.Optimizer(GUROBI_ENV))
@@ -105,20 +108,11 @@ function CuttingPlanes(A, b, epsilon, lambda; solver_output=0,
     # Objective
     @objective(miop, Min, t)
     # Constraints
-    @constraint(miop, sum(z) >= 1)
+    @constraint(miop, sum(z) >= sparsity_lower_bound)
 
     optimal_x = zeros(n)
     optimal_value = 0
-    if upper_bound_x_sol == nothing
-        #z0 = rand(Bernoulli(0.5), n)
-        z0 = ones(n)
-    else
-        z0 = abs.(upper_bound_x_sol) .> 1e-4
-        @constraint(miop, sum(z) <= sum(z0))
-    end
-    if lower_bound_obj != nothing
-        @constraint(miop, t >= lower_bound_obj)
-    end
+    z0 = ones(n)
     output = LineSearch(A, b, z0, epsilon, lambda)
     if output[1]
         p0 = output[2]
@@ -130,10 +124,31 @@ function CuttingPlanes(A, b, epsilon, lambda; solver_output=0,
         z_zeros = findall(x -> x<=0.5, z0)
         @constraint(miop, sum(z[i] for i in z_zeros) >= 1)
     end
+
+    if upper_bound_x_sol != nothing
+        z0 = abs.(upper_bound_x_sol) .> 1e-4
+        @constraint(miop, sum(z) <= sum(z0))
+        output = LineSearch(A, b, z0, epsilon, lambda)
+        if output[1]
+            p0 = output[2]
+            grad_z0 = output[3]
+            optimal_x = output[4]
+            optimal_value = p0
+            @constraint(miop, t >= p0 + dot(grad_z0, z - z0))
+        else
+            z_zeros = findall(x -> x<=0.5, z0)
+            @constraint(miop, sum(z[i] for i in z_zeros) >= 1)
+        end
+    end
+
+    if lower_bound_obj != nothing
+        @constraint(miop, t >= lower_bound_obj)
+    end
+
     cb_calls = Cint[]
+    z_hist = []
     function outer_approximation_opt(cb_data, cb_where::Cint)
         push!(cb_calls, cb_where)
-        num_cuts = size(cb_calls)[1]
         if cb_where != GRB_CB_MIPSOL && cb_where != GRB_CB_MIPNODE
             return
         end
@@ -148,7 +163,7 @@ function CuttingPlanes(A, b, epsilon, lambda; solver_output=0,
         z_val = callback_value.(cb_data, z)
         t_val = callback_value(cb_data, t)
         output = LineSearch(A, b, z_val, epsilon, lambda)
-        num_cuts = size(cb_calls)[1]
+        append!(z_hist, [z_val])
         if output[1]
             obj = output[2]
             grad_z = output[3]
@@ -171,5 +186,5 @@ function CuttingPlanes(A, b, epsilon, lambda; solver_output=0,
     optimize!(miop)
     z_opt = JuMP.value.(z)
 
-    return optimal_x, z_opt, optimal_value, size(cb_calls)[1]
+    return optimal_x, z_opt, optimal_value, size(cb_calls)[1], z_hist
 end;
