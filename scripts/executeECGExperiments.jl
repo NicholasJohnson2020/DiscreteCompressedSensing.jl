@@ -125,7 +125,7 @@ for patientID in patient_indices
     rounding_time_z = nothing
     rounding_time_x = nothing
     n = size(A)[2]
-    gamma = n^2
+    gamma = n
     objective_value = 0
     beta_rounded = zeros(n)
     beta_rounded_z = zeros(n)
