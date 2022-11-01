@@ -1,7 +1,5 @@
 include("helperLibrary.jl")
 
-GUROBI_ENV = Gurobi.Env()
-
 function regobj(X, Y, s, gamma)
     indices = findall(s .> 0.5)
     n = length(Y)

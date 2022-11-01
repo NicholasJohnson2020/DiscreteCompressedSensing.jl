@@ -9,7 +9,7 @@ function basisPursuitDenoising(A, b, epsilon;
     (m, n) = size(A)
 
     if solver == "Gurobi"
-        model = Model(with_optimizer(Gurobi.Optimizer))
+        model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
         set_optimizer_attribute(model, "OutputFlag", solver_output)
     else
         model = Model(SCS.Optimizer)

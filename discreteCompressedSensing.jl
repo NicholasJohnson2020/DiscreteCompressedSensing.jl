@@ -1,6 +1,8 @@
 using JuMP, SCS, Gurobi, LinearAlgebra, Random, Dates, SparseArrays
 using DataStructures, ProgressMeter, Base.Threads
 
+GUROBI_ENV = Gurobi.Env()
+
 include("src/basisPursuitDenoising.jl")
 include("src/exactCompressedSensing.jl")
 include("src/convexRelaxation.jl")

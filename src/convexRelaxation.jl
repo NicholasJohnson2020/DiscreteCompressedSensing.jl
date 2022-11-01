@@ -6,7 +6,7 @@ function perspectiveRelaxation(A, b, epsilon, lambda;
     (m, n) = size(A)
 
     if solver == "Gurobi"
-        model = Model(with_optimizer(Gurobi.Optimizer))
+        model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
         set_optimizer_attribute(model, "OutputFlag", solver_output)
     else
         model = Model(SCS.Optimizer)
@@ -89,7 +89,7 @@ function perspectiveFormulation(A, b, epsilon, lambda; norm_function="L2",
     end
 
     if solver == "Gurobi"
-        model = Model(with_optimizer(Gurobi.Optimizer))
+        model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
         set_optimizer_attribute(model, "OutputFlag", solver_output)
     else
         model = Model(SCS.Optimizer)

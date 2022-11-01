@@ -11,7 +11,7 @@ function solveSubproblemPrimalL2(A, b, epsilon, gamma;
     @assert num_ones + num_zeros <= n
     @assert size(unique_indices)[1] == num_ones + num_zeros
 
-    model = Model(with_optimizer(Gurobi.Optimizer))
+    model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
     set_optimizer_attribute(model, "OutputFlag", solver_output)
 
     @variable(model, x[i=1:n])
@@ -62,7 +62,7 @@ function solveSubproblemDualL2(A, b, epsilon, gamma;
     free_indices = all_indices[(!in).(all_indices, Ref(zero_indices))]
     free_indices = free_indices[(!in).(free_indices, Ref(one_indices))]
 
-    model = Model(with_optimizer(Gurobi.Optimizer))
+    model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
     set_optimizer_attribute(model, "OutputFlag", solver_output)
 
     @variable(model, nu[j=1:m])
@@ -98,7 +98,7 @@ function solveSubproblemPrimalL1(A, b, epsilon, gamma;
     @assert num_ones + num_zeros <= n
     @assert size(unique_indices)[1] == num_ones + num_zeros
 
-    model = Model(with_optimizer(Gurobi.Optimizer))
+    model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
     set_optimizer_attribute(model, "OutputFlag", solver_output)
 
     @variable(model, x[i=1:n])
@@ -150,7 +150,7 @@ function solveSubproblemDualL1(A, b, epsilon, gamma;
     free_indices = all_indices[(!in).(all_indices, Ref(zero_indices))]
     free_indices = free_indices[(!in).(free_indices, Ref(one_indices))]
 
-    model = Model(with_optimizer(Gurobi.Optimizer))
+    model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
     set_optimizer_attribute(model, "OutputFlag", solver_output)
 
     @variable(model, nu[j=1:m])
