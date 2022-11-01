@@ -1,4 +1,5 @@
-using JuMP, SCS, Gurobi, LinearAlgebra, Random, Dates, SparseArrays
+using JuMP, SCS, Gurobi, LinearAlgebra, Random, Dates, SparseArraysusing
+using DataStructures, ProgressMeter, Base.Threads
 
 include("src/basisPursuitDenoising.jl")
 include("src/exactCompressedSensing.jl")
