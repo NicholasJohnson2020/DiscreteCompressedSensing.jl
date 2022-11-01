@@ -1,4 +1,4 @@
-using JuMP, SCS, Gurobi, LinearAlgebra, Random, Dates, SparseArrays, OSQP
+using JuMP, SCS, Gurobi, LinearAlgebra, Random, Dates, SparseArrays
 
 include("src/basisPursuitDenoising.jl")
 include("src/exactCompressedSensing.jl")
