@@ -24,7 +24,10 @@ function update_inverse(A, inv_ATA, a_i)
 end;
 
 
-function roundSolution(x, A, b, epsilon; lower_bound=1)
+function roundSolution(x, A, b, epsilon; lower_bound=1,
+                       norm_function="L2")
+
+    @assert norm_function in ["L1", "L2"]
 
     (m, n) = size(A)
     ordering = sortperm(abs.(x), rev=true)
@@ -43,7 +46,11 @@ function roundSolution(x, A, b, epsilon; lower_bound=1)
     end
     current_x = stored_inv * current_mat' * b
     current_residual = b-current_mat*current_x
-    current_error = norm(current_residual)^2
+    if norm_function == "L1"
+        current_error = sum(abs.(current_residual))
+    else
+        current_error = norm(current_residual)^2
+    end
 
     while current_error > epsilon
 
@@ -57,7 +64,11 @@ function roundSolution(x, A, b, epsilon; lower_bound=1)
         current_mat = hcat(current_mat, A[:, new_index])
         current_x = stored_inv*current_mat'*b
         current_residual = b-current_mat*current_x
-        current_error = norm(current_residual)^2
+        if norm_function == "L1"
+            current_error = sum(abs.(current_residual))
+        else
+            current_error = norm(current_residual)^2
+        end
 
     end
 

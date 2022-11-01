@@ -3,20 +3,24 @@ Pkg.activate("/home/nagj/.julia/environments/sparse_discrete")
 
 include("../discreteCompressedSensing.jl")
 
-using Dates, Random, JSON, MAT, Wavelets
+using Dates, Random, JSON, MAT
 
 METHOD_NAME = ARGS[1]
 INPUT_PATH = ARGS[2]
 OUTPUT_PATH_ROOT = ARGS[3]
 TASK_ID = ARGS[4]
 
-valid_methods = ["Heuristic_Acc",
+valid_methods = ["OMP",
                  "BPD_Gurobi_Rounding",
                  "SOC_Relax_Rounding",
                  "MISOC",
-                 "Cutting_Planes_Warm",
-                 "Exact_Naive_Warm",
-                 "Exact_Binary_Warm"]
+                 "MISOC_Backbone",
+                 "BnB_Primal",
+                 "BnB_Primal_Backbone",
+                 "BnB_Primal_Backbone_Rounding",
+                 "BnB_Dual",
+                 "BnB_Dual_Backbone",
+                 "BnB_Dual_Backbone_Rounding"]
 
 @assert METHOD_NAME in valid_methods
 
@@ -35,24 +39,32 @@ EPSILON_MULTIPLE = param_dict[string(TASK_ID)]["EPSILON"]
 OUTPUT_PATH = OUTPUT_PATH_ROOT * METHOD_NAME * "/"
 
 numerical_threshold = 1e-4
+train_size = 30
+num_atoms = 2000
 
-patient_indices = collect(1:100)
+patient_indices = collect((train_size + 1):100)
 
 sensing_mat_path = INPUT_PATH * "Copmare_ECG_CS-master/BernoulliSample.mat"
 sensing_mat = matread(sensing_mat_path)["BernoulliSample"][1:M, :]
 dim = size(sensing_mat)[2]
 
-wavelet_mat = zeros(dim, dim)
-for i=1:dim
-    basis_vec = zeros(dim)
-    basis_vec[i] = 1
-    xt = dwt(basis_vec, wavelet(WT.sym10))
-    wavelet_mat[:, i] = xt
+train_data = zeros(dim, train_size)
+for index=1:train_size
+    ecg_label = "ecg" * string(index)
+    ecg_path = INPUT_PATH * "Copmare_ECG_CS-master/data/" * ecg_label * ".mat"
+    ecg_signal = matread(ecg_path)[ecg_label]
+    train_data[:, index] = ecg_signal
 end
-svd_out = svd(wavelet_mat)
-basis_mat = svd_out.U
 
-A = sensing_mat * basis_mat'
+atom_dict, _ = ksvd(
+    train_data,
+    num_atoms,  # the number of atoms in D
+    max_iter = 200,  # max iterations of K-SVD
+    max_iter_mp = 40,  # max iterations of matching pursuit called in K-SVD
+    sparsity_allowance = 0.96
+);
+
+A = sensing_mat * atom_dict
 
 experiment_results = Dict()
 experiment_results["Method"] = METHOD_NAME
@@ -77,7 +89,7 @@ for patientID in patient_indices
         patient_results["rounded_L2_error"] = []
         patient_results["rounded_L1_error"] = []
         patient_results["rounded_L0_norm"] = []
-        patient_results["rounded_ssim"] = []
+        #patient_results["rounded_ssim"] = []
         patient_results["rounded_execution_time"] = []
     end
 
@@ -86,22 +98,30 @@ for patientID in patient_indices
         patient_results["rounded_z_L2_error"] = []
         patient_results["rounded_z_L1_error"] = []
         patient_results["rounded_z_L0_norm"] = []
-        patient_results["rounded_z_ssim"] = []
+        #patient_results["rounded_z_ssim"] = []
         patient_results["rounded_z_execution_time"] = []
 
         patient_results["rounded_x_solution"] = []
         patient_results["rounded_x_L2_error"] = []
         patient_results["rounded_x_L1_error"] = []
         patient_results["rounded_x_L0_norm"] = []
-        patient_results["rounded_x_ssim"] = []
+        #patient_results["rounded_x_ssim"] = []
         patient_results["rounded_x_execution_time"] = []
 
-        patient_results["cutting_planes_lb"] = []
+        #patient_results["cutting_planes_lb"] = []
     end
 
-    if METHOD_NAME == "Cutting_Planes_Warm"
-        patient_results["num_cuts"] = []
+    if METHOD_NAME in ["BnB_Primal",
+                       "BnB_Primal_Backbone",
+                       "BnB_Primal_Backbone_Rounding",
+                       "BnB_Dual",
+                       "BnB_Dual_Backbone",
+                       "BnB_Dual_Backbone_Rounding"]
+
+        patient_results["num_nodes"] = []
+
     end
+
 
     experiment_results[patientID] = patient_results
 end
@@ -131,15 +151,16 @@ for patientID in patient_indices
     beta_rounded_z = zeros(n)
     beta_rounded_x = zeros(n)
     num_cuts = 0
-    if METHOD_NAME == "Heuristic_Acc"
+    num_nodes = 0
+    if METHOD_NAME == "OMP"
         trial_start = now()
         beta_fitted, _ = exactCompressedSensingHeuristicAcc(A, b_observed,
                                                             epsilon)
         trial_end_time = now()
     elseif METHOD_NAME == "BPD_Gurobi_Rounding"
         trial_start = now()
-        output = basisPursuitDenoising(A, b_observed,
-                                       epsilon,
+        output = basisPursuitDenoising(A, b_observed, epsilon,
+                                       norm_function="L2",
                                        solver="Gurobi", round_solution=true)
         beta_fitted = output[4]
         beta_rounded = output[2]
@@ -149,7 +170,7 @@ for patientID in patient_indices
         trial_start = now()
         output = perspectiveRelaxation(A, b_observed,
                                        epsilon,
-                                       n, round_solution=true)
+                                       n^2, round_solution=true)
         beta_fitted = output[5]
         beta_rounded_z = output[2]
         beta_rounded_x = output[4]
@@ -159,9 +180,63 @@ for patientID in patient_indices
         trial_end_time = now()
     elseif METHOD_NAME == "MISOC"
         trial_start = now()
-        beta_fitted, _, _ = perspectiveFormulation(A, b_observed,
-                                                   epsilon,
-                                                   n^2)
+        beta_fitted, _, _ = perspectiveFormulation(A, b_observed, epsilon, n^2,
+                                                   norm_function="L2",
+                                                   BPD_backbone=false)
+        trial_end_time = now()
+    elseif METHOD_NAME == "MISOC_Backbone"
+        trial_start = now()
+        beta_fitted, _, _ = perspectiveFormulation(A, b_observed, epsilon, n^2,
+                                                   norm_function="L2",
+                                                   BPD_backbone=true)
+        trial_end_time = now()
+    elseif METHOD_NAME == "BnB_Primal"
+        trial_start = now()
+        output = CS_BnB(A, b_observed, epsilon, n^2, round_at_nodes=false,
+                        norm_function="L2", subproblem_type="primal",
+                        BPD_backbone=false)
+        beta_fitted = output[1]
+        num_nodes = output[4]
+        trial_end_time = now()
+    elseif METHOD_NAME == "BnB_Primal_Backbone"
+        trial_start = now()
+        output = CS_BnB(A, b_observed, epsilon, n^2, round_at_nodes=false,
+                        norm_function="L2", subproblem_type="primal",
+                        BPD_backbone=true)
+        beta_fitted = output[1]
+        num_nodes = output[4]
+        trial_end_time = now()
+    elseif METHOD_NAME == "BnB_Primal_Backbone_Rounding"
+        trial_start = now()
+        output = CS_BnB(A, b_observed, epsilon, n^2, round_at_nodes=true,
+                        norm_function="L2", subproblem_type="primal",
+                        BPD_backbone=true)
+        beta_fitted = output[1]
+        num_nodes = output[4]
+        trial_end_time = now()
+    elseif METHOD_NAME == "BnB_Dual"
+        trial_start = now()
+        output = CS_BnB(A, b_observed, epsilon, n^2, round_at_nodes=false,
+                        norm_function="L2", subproblem_type="dual",
+                        BPD_backbone=false)
+        beta_fitted = output[1]
+        num_nodes = output[4]
+        trial_end_time = now()
+    elseif METHOD_NAME == "BnB_Dual_Backbone"
+        trial_start = now()
+        output = CS_BnB(A, b_observed, epsilon, n^2, round_at_nodes=false,
+                        norm_function="L2", subproblem_type="dual",
+                        BPD_backbone=true)
+        beta_fitted = output[1]
+        num_nodes = output[4]
+        trial_end_time = now()
+    elseif METHOD_NAME == "BnB_Dual_Backbone_Rounding"
+        trial_start = now()
+        output = CS_BnB(A, b_observed, epsilon, n^2, round_at_nodes=true,
+                        norm_function="L2", subproblem_type="dual",
+                        BPD_backbone=true)
+        beta_fitted = output[1]
+        num_nodes = output[4]
         trial_end_time = now()
     elseif METHOD_NAME == "Cutting_Planes_Warm"
         LOAD_PATH = OUTPUT_PATH_ROOT * "SOC_Relax_Rounding/"
@@ -214,12 +289,10 @@ for patientID in patient_indices
         trial_end_time = now()
     end
 
-    reconstruction = basis_mat'*beta_fitted
+    reconstruction = atom_dict * beta_fitted
     L2_error = norm(ecg_signal-reconstruction)^2 / norm(ecg_signal)^2
     L1_error = norm(ecg_signal-reconstruction, 1) / norm(ecg_signal, 1)
     L0_norm = sum(abs.(beta_fitted) .> numerical_threshold)
-    n = size(beta_fitted)[1]
-    img_width = Int64(n^0.5)
     elapsed_time = Dates.value(trial_end_time - trial_start)
 
     append!(experiment_results[patientID]["b_full"], [ecg_signal])
@@ -232,12 +305,10 @@ for patientID in patient_indices
 
     if METHOD_NAME == "BPD_Gurobi_Rounding"
 
-        reconstruction = basis_mat'*beta_rounded
+        reconstruction = atom_dict * beta_rounded
         L2_error = norm(ecg_signal-reconstruction)^2 / norm(ecg_signal)^2
         L1_error = norm(ecg_signal-reconstruction, 1) / norm(ecg_signal, 1)
         L0_norm = sum(abs.(beta_rounded) .> numerical_threshold)
-        n = size(beta_rounded)[1]
-        img_width = Int64(n^0.5)
 
         append!(experiment_results[patientID]["rounded_solution"], [beta_rounded])
         append!(experiment_results[patientID]["rounded_L2_error"], L2_error)
@@ -247,12 +318,10 @@ for patientID in patient_indices
     end
 
     if METHOD_NAME == "SOC_Relax_Rounding"
-        reconstruction = basis_mat'*beta_rounded_z
+        reconstruction = atom_dict * beta_rounded_z
         L2_error = norm(ecg_signal-reconstruction)^2 / norm(ecg_signal)^2
         L1_error = norm(ecg_signal-reconstruction, 1) / norm(ecg_signal, 1)
         L0_norm = sum(abs.(beta_rounded_z) .> numerical_threshold)
-        n = size(beta_rounded_z)[1]
-        img_width = Int64(n^0.5)
 
         append!(experiment_results[patientID]["rounded_z_solution"], [beta_rounded_z])
         append!(experiment_results[patientID]["rounded_z_L2_error"], L2_error)
@@ -260,11 +329,10 @@ for patientID in patient_indices
         append!(experiment_results[patientID]["rounded_z_L0_norm"], L0_norm)
         append!(experiment_results[patientID]["rounded_z_execution_time"], Dates.value(rounding_time_z))
 
-        reconstruction = basis_mat'*beta_rounded_x
+        reconstruction = atom_dict * beta_rounded_x
         L2_error = norm(ecg_signal-reconstruction)^2 / norm(ecg_signal)^2
         L1_error = norm(ecg_signal-reconstruction, 1) / norm(ecg_signal, 1)
         L0_norm = sum(abs.(beta_rounded_x) .> numerical_threshold)
-        n = size(beta_rounded_x)[1]
 
         append!(experiment_results[patientID]["rounded_x_solution"], [beta_rounded_x])
         append!(experiment_results[patientID]["rounded_x_L2_error"], L2_error)
@@ -272,12 +340,18 @@ for patientID in patient_indices
         append!(experiment_results[patientID]["rounded_x_L0_norm"], L0_norm)
         append!(experiment_results[patientID]["rounded_x_execution_time"], Dates.value(rounding_time_x))
 
-        append!(experiment_results[patientID]["cutting_planes_lb"],
-                objective_value)
+        #append!(experiment_results[patientID]["cutting_planes_lb"],
+        #        objective_value)
     end
 
-    if METHOD_NAME == "Cutting_Planes_Warm"
-        append!(experiment_results[patientID]["num_cuts"], num_cuts)
+    if METHOD_NAME in ["BnB_Primal",
+                       "BnB_Primal_Backbone",
+                       "BnB_Primal_Backbone_Rounding",
+                       "BnB_Dual",
+                       "BnB_Dual_Backbone",
+                       "BnB_Dual_Backbone_Rounding"]
+
+        append!(experiment_results[patientID]["num_nodes"], num_nodes)
     end
 
 end

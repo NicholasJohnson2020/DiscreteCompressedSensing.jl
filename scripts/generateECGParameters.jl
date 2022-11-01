@@ -6,7 +6,7 @@ using JSON
 file_path = ARGS[1]
 
 NUM_CR = collect(1:19)
-EPSILON_MULTIPLE = collect(0.05:0.1:1)
+EPSILON_MULTIPLE = collect(0.05:0.05:0.5)
 N = 1024
 
 config_count = 0
