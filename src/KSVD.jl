@@ -1,5 +1,3 @@
-using DataStructures, SparseArrays
-
 # The implementation is referencing the wikipedia page
 # https://en.wikipedia.org/wiki/Matching_pursuit#The_algorithm
 
@@ -112,10 +110,6 @@ end;
 # Variable names are based on the original paper.
 # If you try to read the code, I recommend you to see Figure 2 first.
 #
-
-using ProgressMeter
-using Base.Threads, Random, SparseArrays, LinearAlgebra
-
 
 #include("matching_pursuit.jl")
 
