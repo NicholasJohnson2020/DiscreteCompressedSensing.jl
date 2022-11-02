@@ -80,7 +80,18 @@ METHOD_NAME = ARGS[1]
 INPUT_PATH = ARGS[2]
 numerical_threshold = 1e-4
 
-df1 = processData(INPUT_PATH, "")
+if METHOD_NAME in ["BnB_Primal",
+                   "BnB_Primal_Backbone",
+                   "BnB_Primal_Backbone_Rounding",
+                   "BnB_Dual",
+                   "BnB_Dual_Backbone",
+                   "BnB_Dual_Backbone_Rounding"]
+   df = processData(INPUT_PATH, "", BnB = true)
+   CSV.write(INPUT_PATH * METHOD_NAME * "_aggrData.csv", df)
+else
+   df = processData(INPUT_PATH, "")
+   CSV.write(INPUT_PATH * METHOD_NAME * "_aggrData.csv", df)
+end
 
 if METHOD_NAME == "BPD_Gurobi_Rounding"
    OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "_rounded_aggrData.csv"
@@ -96,7 +107,4 @@ if METHOD_NAME == "SOC_Relax_Rounding"
    CSV.write(INPUT_PATH * METHOD_NAME * "_rounded_x_aggrData.csv", df2)
    CSV.write(INPUT_PATH * METHOD_NAME * "_rounded_z_aggrData.csv", df3)
 end
-
-CSV.write(INPUT_PATH * METHOD_NAME * "_aggrData.csv", df1)
-
 ;
