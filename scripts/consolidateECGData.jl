@@ -86,11 +86,9 @@ if METHOD_NAME in ["BnB_Primal",
                    "BnB_Dual",
                    "BnB_Dual_Backbone",
                    "BnB_Dual_Backbone_Rounding"]
-   df = processData(INPUT_PATH, "", BnB = true)
-   CSV.write(INPUT_PATH * METHOD_NAME * "_aggrData.csv", df)
+   df1 = processData(INPUT_PATH, "", BnB = true)
 else
-   df = processData(INPUT_PATH, "")
-   CSV.write(INPUT_PATH * METHOD_NAME * "_aggrData.csv", df)
+   df1 = processData(INPUT_PATH, "")
 end
 
 if METHOD_NAME == "BPD_Gurobi_Rounding"
@@ -107,4 +105,6 @@ if METHOD_NAME == "SOC_Relax_Rounding"
    CSV.write(INPUT_PATH * METHOD_NAME * "_rounded_x_aggrData.csv", df2)
    CSV.write(INPUT_PATH * METHOD_NAME * "_rounded_z_aggrData.csv", df3)
 end
+
+CSV.write(INPUT_PATH * METHOD_NAME * "_aggrData.csv", df1)
 ;
