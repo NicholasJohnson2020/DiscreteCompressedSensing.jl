@@ -2,7 +2,7 @@ using Pkg
 Pkg.activate("/home/nagj/.julia/environments/sparse_discrete")
 using JSON, LinearAlgebra, Statistics, DataFrames, CSV
 
-function processData(input_path, prefix)
+function processData(input_path, prefix; BnB=false)
 
    df = DataFrame(epsilon_multiple=Float64[], M=Int64[], CR=Float64[],
                   L2_error=Float64[], L2_error_std=Float64[],
@@ -13,6 +13,9 @@ function processData(input_path, prefix)
    successful_entries = 0
 
    file_paths = readdir(input_path, join=true)
+   num_nodes_mean = []
+   num_nodes_std = []
+
    for file_name in file_paths
 
       exp_data = Dict()
@@ -28,12 +31,18 @@ function processData(input_path, prefix)
       L0_norm = []
       exec_time = []
 
+      num_nodes = []
+
       for patientID in patient_indexes
 
          append!(L2_error, exp_data[string(patientID)][prefix * "L2_error"])
          append!(L1_error, exp_data[string(patientID)][prefix * "L1_error"])
          append!(L0_norm, exp_data[string(patientID)][prefix * "L0_norm"])
          append!(exec_time, exp_data[string(patientID)][prefix * "execution_time"])
+
+         if BnB
+            append!(num_nodes, exp_data[string(patientID)]["num_nodes"])
+         end
 
       end
 
@@ -48,9 +57,19 @@ function processData(input_path, prefix)
                      Statistics.std(L0_norm),
                      Statistics.mean(exec_time),
                      Statistics.std(exec_time)]
+
+      if BnB
+         append!(num_nodes_mean, Statistics.mean(num_nodes))
+         append!(num_nodes_std, Statistics.std(num_nodes))
+      end
       push!(df, current_row)
       successful_entries += 1
 
+   end
+
+   if BnB
+      df[!, "num_nodes"] = num_nodes_mean
+      df[!, "num_nodes_error"] = num_nodes_std
    end
 
    println("$successful_entries entries have been entered into the dataframe.")
