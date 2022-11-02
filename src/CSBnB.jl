@@ -266,14 +266,14 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
                                      zero_indices=zero_indices,
                                      one_indices=one_indices)
             if round_at_nodes
-                (rounded_x, upper_bound_obj, x_relax, z_relax, lower_obj) = output
+                (rounded_x, upper_bound_obj, x_relax, z_relax, lower_bound_obj) = output
             else
-                (x_relax, z_relax, lower_obj) = output
+                (x_relax, z_relax, lower_bound_obj) = output
             end
 
             if isTerminal(one_indices, zero_indices, n) || round_at_nodes
                 if isTerminal(one_indices, zero_indices, n)
-                    upper_bound_obj = lower_obj
+                    upper_bound_obj = lower_bound_obj
                     if x_relax == nothing
                         output = solveSubproblem(A, b, epsilon, gamma,
                                                  round_solution=false,
@@ -343,7 +343,7 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
                 new_node = node(zero_indices,
                                 one_indices,
                                 upper_bound_obj,
-                                lower_obj,
+                                lower_bound_obj,
                                 z_relax)
                 push!(master_node_list, new_node)
             end
