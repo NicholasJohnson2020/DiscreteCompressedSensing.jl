@@ -143,7 +143,7 @@ for patientID in patient_indices
 
     #b_observed = sensing_mat * ecg_signal
     #epsilon = EPSILON_MULTIPLE * norm(b_observed)^2
-    perturbed = ecg_signal + rand(Normal(0, mean(abs.(ecg_signal)) / 4),\
+    perturbed = ecg_signal + rand(Normal(0, mean(abs.(ecg_signal)) / 4),
                                   size(ecg_signal)[1])
     b_observed = sensing_mat * perturbed
     epsilon = EPSILON_MULTIPLE * norm(b_observed - sensing_mat * ecg_signal)^2
