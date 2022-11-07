@@ -3,8 +3,6 @@ Pkg.activate("/home/nagj/.julia/environments/sparse_discrete")
 
 include("../discreteCompressedSensing.jl")
 
-using Dates, Random, JSON, MAT
-
 METHOD_NAME = ARGS[1]
 INPUT_PATH = ARGS[2]
 OUTPUT_PATH_ROOT = ARGS[3]
@@ -42,7 +40,8 @@ numerical_threshold = 1e-4
 train_size = 30
 num_atoms = 2000
 
-patient_indices = collect((train_size + 1):100)
+#patient_indices = collect((train_size + 1):100)
+patient_indices = collect((train_size + 1):35)
 
 sensing_mat_path = INPUT_PATH * "Copmare_ECG_CS-master/BernoulliSample.mat"
 sensing_mat = matread(sensing_mat_path)["BernoulliSample"][1:M, :]
@@ -73,6 +72,8 @@ experiment_results["M"] = M
 experiment_results["CR"] = CR
 experiment_results["EPSILON"] = EPSILON_MULTIPLE
 experiment_results["Indices"] = patient_indices
+experiment_results["Train_Size"] = train_size
+experiment_results["Num_Atoms"] = num_atoms
 
 for patientID in patient_indices
     patient_results = Dict()
@@ -130,6 +131,8 @@ start_time = now()
 
 for patientID in patient_indices
 
+    println("Starting Patient " * patientID)
+
     ecg_label = "ecg" * string(patientID)
     ecg_path = INPUT_PATH * "Copmare_ECG_CS-master/data/" * ecg_label * ".mat"
     if patientID == 75
@@ -138,8 +141,12 @@ for patientID in patient_indices
         ecg_signal = matread(ecg_path)[ecg_label]
     end
 
-    b_observed = sensing_mat * ecg_signal
-    epsilon = EPSILON_MULTIPLE * norm(b_observed)^2
+    #b_observed = sensing_mat * ecg_signal
+    #epsilon = EPSILON_MULTIPLE * norm(b_observed)^2
+    perturbed = ecg_signal + rand(Normal(0, mean(abs.(ecg_signal)) / 4),\
+                                  size(ecg_signal)[1])
+    b_observed = sensing_mat * perturbed
+    epsilon = EPSILON_MULTIPLE * norm(b_observed - sensing_mat * ecg_signal)^2
 
     rounding_time = nothing
     rounding_time_z = nothing
@@ -170,7 +177,7 @@ for patientID in patient_indices
         trial_start = now()
         output = perspectiveRelaxation(A, b_observed,
                                        epsilon,
-                                       n^2, round_solution=true)
+                                       gamma, round_solution=true)
         beta_fitted = output[5]
         beta_rounded_z = output[2]
         beta_rounded_x = output[4]
@@ -180,19 +187,19 @@ for patientID in patient_indices
         trial_end_time = now()
     elseif METHOD_NAME == "MISOC"
         trial_start = now()
-        beta_fitted, _, _ = perspectiveFormulation(A, b_observed, epsilon, n^2,
+        beta_fitted, _, _ = perspectiveFormulation(A, b_observed, epsilon, gamma,
                                                    norm_function="L2",
                                                    BPD_backbone=false)
         trial_end_time = now()
     elseif METHOD_NAME == "MISOC_Backbone"
         trial_start = now()
-        beta_fitted, _, _ = perspectiveFormulation(A, b_observed, epsilon, n^2,
+        beta_fitted, _, _ = perspectiveFormulation(A, b_observed, epsilon, gamma,
                                                    norm_function="L2",
                                                    BPD_backbone=true)
         trial_end_time = now()
     elseif METHOD_NAME == "BnB_Primal"
         trial_start = now()
-        output = CS_BnB(A, b_observed, epsilon, n^2, round_at_nodes=false,
+        output = CS_BnB(A, b_observed, epsilon, gamma, round_at_nodes=false,
                         norm_function="L2", subproblem_type="primal",
                         BPD_backbone=false)
         beta_fitted = output[1]
@@ -200,7 +207,7 @@ for patientID in patient_indices
         trial_end_time = now()
     elseif METHOD_NAME == "BnB_Primal_Backbone"
         trial_start = now()
-        output = CS_BnB(A, b_observed, epsilon, n^2, round_at_nodes=false,
+        output = CS_BnB(A, b_observed, epsilon, gamma, round_at_nodes=false,
                         norm_function="L2", subproblem_type="primal",
                         BPD_backbone=true)
         beta_fitted = output[1]
@@ -208,7 +215,7 @@ for patientID in patient_indices
         trial_end_time = now()
     elseif METHOD_NAME == "BnB_Primal_Backbone_Rounding"
         trial_start = now()
-        output = CS_BnB(A, b_observed, epsilon, n^2, round_at_nodes=true,
+        output = CS_BnB(A, b_observed, epsilon, gamma, round_at_nodes=true,
                         norm_function="L2", subproblem_type="primal",
                         BPD_backbone=true)
         beta_fitted = output[1]
@@ -216,7 +223,7 @@ for patientID in patient_indices
         trial_end_time = now()
     elseif METHOD_NAME == "BnB_Dual"
         trial_start = now()
-        output = CS_BnB(A, b_observed, epsilon, n^2, round_at_nodes=false,
+        output = CS_BnB(A, b_observed, epsilon, gamma, round_at_nodes=false,
                         norm_function="L2", subproblem_type="dual",
                         BPD_backbone=false)
         beta_fitted = output[1]
@@ -224,7 +231,7 @@ for patientID in patient_indices
         trial_end_time = now()
     elseif METHOD_NAME == "BnB_Dual_Backbone"
         trial_start = now()
-        output = CS_BnB(A, b_observed, epsilon, n^2, round_at_nodes=false,
+        output = CS_BnB(A, b_observed, epsilon, gamma, round_at_nodes=false,
                         norm_function="L2", subproblem_type="dual",
                         BPD_backbone=true)
         beta_fitted = output[1]
@@ -232,7 +239,7 @@ for patientID in patient_indices
         trial_end_time = now()
     elseif METHOD_NAME == "BnB_Dual_Backbone_Rounding"
         trial_start = now()
-        output = CS_BnB(A, b_observed, epsilon, n^2, round_at_nodes=true,
+        output = CS_BnB(A, b_observed, epsilon, gamma, round_at_nodes=true,
                         norm_function="L2", subproblem_type="dual",
                         BPD_backbone=true)
         beta_fitted = output[1]
@@ -250,7 +257,7 @@ for patientID in patient_indices
         upper_bound = warm_start_data[string(patientID)]["rounded_z_solution"][1]
         lower_bound = warm_start_data[string(patientID)]["cutting_planes_lb"][1]
         trial_start = now()
-        output = CuttingPlanes(A, b_observed, epsilon, n^2,
+        output = CuttingPlanes(A, b_observed, epsilon, gamma,
                                lower_bound_obj=lower_bound, upper_bound_x_sol=upper_bound)
         beta_fitted = output[1]
         num_cuts = output[4]
@@ -353,6 +360,9 @@ for patientID in patient_indices
 
         append!(experiment_results[patientID]["num_nodes"], num_nodes)
     end
+
+    println("Finished Patient " * patientID)
+    println()
 
 end
 
