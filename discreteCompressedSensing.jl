@@ -1,6 +1,6 @@
 using JuMP, SCS, Gurobi, LinearAlgebra, Random, Dates, SparseArrays
 using DataStructures, ProgressMeter, Base.Threads
-using JSON, MAT, Statistics, Distributions
+using JSON, MAT, Statistics
 
 GUROBI_ENV = Gurobi.Env()
 
