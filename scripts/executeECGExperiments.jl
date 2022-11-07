@@ -131,7 +131,7 @@ start_time = now()
 
 for patientID in patient_indices
 
-    println("Starting Patient " * patientID)
+    println("Starting Patient " * string(patientID))
 
     ecg_label = "ecg" * string(patientID)
     ecg_path = INPUT_PATH * "Copmare_ECG_CS-master/data/" * ecg_label * ".mat"
@@ -361,7 +361,7 @@ for patientID in patient_indices
         append!(experiment_results[patientID]["num_nodes"], num_nodes)
     end
 
-    println("Finished Patient " * patientID)
+    println("Finished Patient " * string(patientID))
     println()
 
 end
