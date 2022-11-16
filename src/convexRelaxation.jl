@@ -1,9 +1,14 @@
 function perspectiveRelaxation(A, b, epsilon, lambda;
-    solver_output=0, solver="Gurobi", round_solution=true)
+    solver_output=0, solver="Gurobi", round_solution=true,
+    use_default_lambda=false)
 
     @assert solver in ["Gurobi", "SCS"]
 
     (m, n) = size(A)
+
+    if use_default_lambda
+        lambda = sqrt(size(A)[2])
+    end
 
     if solver == "Gurobi"
         model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))

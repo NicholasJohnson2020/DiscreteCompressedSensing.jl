@@ -177,7 +177,8 @@ for patientID in patient_indices
         trial_start = now()
         output = perspectiveRelaxation(A, b_observed,
                                        epsilon,
-                                       gamma, round_solution=true)
+                                       gamma, round_solution=true,
+                                       use_default_lambda=true)
         beta_fitted = output[5]
         beta_rounded_z = output[2]
         beta_rounded_x = output[4]
