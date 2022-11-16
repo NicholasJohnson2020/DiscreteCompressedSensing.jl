@@ -40,8 +40,8 @@ numerical_threshold = 1e-4
 train_size = 30
 num_atoms = 2000
 
-#patient_indices = collect((train_size + 1):100)
-patient_indices = collect((train_size + 1):50)
+patient_indices = collect((train_size + 1):100)
+#patient_indices = collect((train_size + 1):50)
 
 sensing_mat_path = INPUT_PATH * "Copmare_ECG_CS-master/BernoulliSample.mat"
 sensing_mat = matread(sensing_mat_path)["BernoulliSample"][1:M, :]
@@ -195,7 +195,8 @@ for patientID in patient_indices
         trial_start = now()
         beta_fitted, _, _ = perspectiveFormulation(A, b_observed, epsilon, gamma,
                                                    norm_function="L2",
-                                                   BPD_backbone=true)
+                                                   BPD_backbone=true,
+                                                   use_default_lambda=true)
         trial_end_time = now()
     elseif METHOD_NAME == "BnB_Primal"
         trial_start = now()
@@ -217,7 +218,7 @@ for patientID in patient_indices
         trial_start = now()
         output = CS_BnB(A, b_observed, epsilon, gamma, round_at_nodes=true,
                         norm_function="L2", subproblem_type="primal",
-                        BPD_backbone=true)
+                        BPD_backbone=true, use_default_gamma=true)
         beta_fitted = output[1]
         num_nodes = output[4]
         trial_end_time = now()
@@ -241,7 +242,7 @@ for patientID in patient_indices
         trial_start = now()
         output = CS_BnB(A, b_observed, epsilon, gamma, round_at_nodes=true,
                         norm_function="L2", subproblem_type="dual",
-                        BPD_backbone=true)
+                        BPD_backbone=true, use_default_gamma=true)
         beta_fitted = output[1]
         num_nodes = output[4]
         trial_end_time = now()

@@ -80,7 +80,7 @@ end;
 function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
     round_at_nodes=false, output_to_file=false, output_file_name="temp.txt",
     norm_function="L2", subproblem_type="primal", subproblem_warmstart=false,
-    BPD_backbone=false)
+    BPD_backbone=false, use_default_gamma=false)
     """
     This function computes a certifiably near-optimal solution to the problem
         min ||U - X - Y||_F^2 + lambda * ||X||_F^2 + mu * ||Y||_F^2
@@ -180,6 +180,10 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
             rounded_x[i] = output[2][backbone[i]]
             opt_x[i] = output[4][backbone[i]]
         end
+    end
+
+    if use_default_gamma
+        gamma = sqrt(size(A)[2])
     end
 
     all_indices = collect(1:n)

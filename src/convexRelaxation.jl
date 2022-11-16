@@ -60,7 +60,8 @@ end;
 
 
 function perspectiveFormulation(A, b, epsilon, lambda; norm_function="L2",
-    solver_output=0, solver="Gurobi", BPD_backbone=false)
+    solver_output=0, solver="Gurobi", BPD_backbone=false,
+    use_default_lambda=false)
 
     @assert solver in ["Gurobi", "SCS"]
     @assert norm_function in ["L2", "L1"]
@@ -86,6 +87,10 @@ function perspectiveFormulation(A, b, epsilon, lambda; norm_function="L2",
             reduced_A[:, i] = A[:, backbone[i]]
         end
         A = reduced_A
+    end
+
+    if use_default_lambda
+        lambda = sqrt(size(A)[2])
     end
 
     if solver == "Gurobi"
