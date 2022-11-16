@@ -41,7 +41,7 @@ train_size = 30
 num_atoms = 2000
 
 #patient_indices = collect((train_size + 1):100)
-patient_indices = collect((train_size + 1):35)
+patient_indices = collect((train_size + 1):32)
 
 sensing_mat_path = INPUT_PATH * "Copmare_ECG_CS-master/BernoulliSample.mat"
 sensing_mat = matread(sensing_mat_path)["BernoulliSample"][1:M, :]
