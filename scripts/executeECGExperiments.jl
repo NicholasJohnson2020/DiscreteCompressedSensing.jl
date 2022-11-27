@@ -164,7 +164,7 @@ for patientID in patient_indices
     elseif gamma_flag == "SQUARE"
         gamma = gamma * n^2
     end
-    
+
     objective_value = 0
     beta_rounded = zeros(n)
     beta_rounded_z = zeros(n)
@@ -190,7 +190,7 @@ for patientID in patient_indices
         output = perspectiveRelaxation(A, b_observed,
                                        epsilon,
                                        gamma, round_solution=true,
-                                       use_default_lambda=true)
+                                       use_default_lambda=false)
         beta_fitted = output[5]
         beta_rounded_z = output[2]
         beta_rounded_x = output[4]
@@ -209,7 +209,7 @@ for patientID in patient_indices
         beta_fitted, _, _ = perspectiveFormulation(A, b_observed, epsilon, gamma,
                                                    norm_function="L2",
                                                    BPD_backbone=true,
-                                                   use_default_lambda=true)
+                                                   use_default_lambda=false)
         trial_end_time = now()
     elseif METHOD_NAME == "BnB_Primal"
         trial_start = now()
