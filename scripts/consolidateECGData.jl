@@ -5,6 +5,7 @@ using JSON, LinearAlgebra, Statistics, DataFrames, CSV
 function processData(input_path, prefix; BnB=false)
 
    df = DataFrame(epsilon_multiple=Float64[], M=Int64[], CR=Float64[],
+                  gamma_mult=Float64[], gamma_flag=String[],
                   L2_error=Float64[], L2_error_std=Float64[],
                   L1_error=Float64[], L1_error_std=Float64[],
                   L0_norm=Float64[], L0_norm_std=Float64[],
@@ -49,6 +50,8 @@ function processData(input_path, prefix; BnB=false)
       current_row = [exp_data["EPSILON"],
                      exp_data["M"],
                      exp_data["CR"],
+                     exp_data["GAMMA_MULT"],
+                     exp_data["GAMMA_FLAG"],
                      Statistics.mean(L2_error),
                      Statistics.std(L2_error),
                      Statistics.mean(L1_error),
