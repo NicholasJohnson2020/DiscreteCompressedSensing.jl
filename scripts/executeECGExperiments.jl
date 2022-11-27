@@ -33,6 +33,8 @@ end
 M = param_dict[string(TASK_ID)]["M"]
 CR = param_dict[string(TASK_ID)]["CR"]
 EPSILON_MULTIPLE = param_dict[string(TASK_ID)]["EPSILON"]
+gamma_mult = param_dict[string(TASK_ID)]["GAMMA_MULT"]
+gamma_flag = param_dict[string(TASK_ID)]["GAMMA_FLAG"]
 
 OUTPUT_PATH = OUTPUT_PATH_ROOT * METHOD_NAME * "/"
 
@@ -71,6 +73,8 @@ experiment_results["N"] = dim
 experiment_results["M"] = M
 experiment_results["CR"] = CR
 experiment_results["EPSILON"] = EPSILON_MULTIPLE
+experiment_results["GAMMA_MULT"] = gamma_mult
+experiment_results["GAMMA_FLAG"] = gamma_flag
 experiment_results["Indices"] = patient_indices
 experiment_results["Train_Size"] = train_size
 experiment_results["Num_Atoms"] = num_atoms
@@ -152,7 +156,15 @@ for patientID in patient_indices
     rounding_time_z = nothing
     rounding_time_x = nothing
     n = size(A)[2]
-    gamma = n
+    gamma = gamma_mult
+    if gamma_flag == "SQUARE_ROOT"
+        gamma = gamma * sqrt(n)
+    elseif gamma_flag == "LINEAR"
+        gamma = gamma * n
+    elseif gamma_flag == "SQUARE"
+        gamma = gamma * n^2
+    end
+    
     objective_value = 0
     beta_rounded = zeros(n)
     beta_rounded_z = zeros(n)
