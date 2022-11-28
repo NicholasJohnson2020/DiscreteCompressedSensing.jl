@@ -7,11 +7,13 @@ file_path = ARGS[1]
 
 #NUM_CR = collect(1:2:19)
 #EPSILON_MULTIPLE = collect(0.05:0.05:0.5)
-M_vals = collect(10:5:45)
+#M_vals = collect(10:5:45)
+M_vals = [10]
 #EPSILON_MULTIPLE = collect(1:0.05:1.5)
 EPSILON_MULTIPLE = [1.05]
 N = 1024
-GAMMA_MULT = [0.01, 0.1, 1, 10]
+#GAMMA_MULT = [0.01, 0.1, 1, 10]
+GAMMA_MULT = collect(LinRange(0.01, 8, 160))
 GAMMA_FLAG = ["SQUARE_ROOT", "LINEAR", "SQUARE"]
 
 config_count = 0
