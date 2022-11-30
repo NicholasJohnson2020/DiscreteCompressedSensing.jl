@@ -231,7 +231,7 @@ for patientID in patient_indices
         trial_start = now()
         output = CS_BnB(A, b_observed, epsilon, gamma, round_at_nodes=true,
                         norm_function="L2", subproblem_type="primal",
-                        BPD_backbone=true, use_default_gamma=true)
+                        BPD_backbone=true)
         beta_fitted = output[1]
         num_nodes = output[4]
         trial_end_time = now()
@@ -255,7 +255,7 @@ for patientID in patient_indices
         trial_start = now()
         output = CS_BnB(A, b_observed, epsilon, gamma, round_at_nodes=true,
                         norm_function="L2", subproblem_type="dual",
-                        BPD_backbone=true, use_default_gamma=true)
+                        BPD_backbone=true)
         beta_fitted = output[1]
         num_nodes = output[4]
         trial_end_time = now()
