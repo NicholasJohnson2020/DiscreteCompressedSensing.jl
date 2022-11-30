@@ -268,7 +268,9 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
             output = solveSubproblem(A, b, epsilon, gamma,
                                      round_solution=round_at_nodes,
                                      zero_indices=zero_indices,
-                                     one_indices=one_indices)
+                                     one_indices=one_indices,
+                                     subproblem_type=subproblem_type,
+                                     norm_function=norm_function)
             if round_at_nodes
                 (rounded_x, upper_bound_obj, x_relax, z_relax, lower_bound_obj) = output
             else
