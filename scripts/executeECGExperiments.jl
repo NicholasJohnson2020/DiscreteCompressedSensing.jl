@@ -332,7 +332,7 @@ for patientID in patient_indices
     append!(experiment_results[patientID]["L0_norm"], L0_norm)
     append!(experiment_results[patientID]["execution_time"], elapsed_time)
 
-    if METHOD_NAME == "BPD_Gurobi_Rounding"
+    if METHOD_NAME in ["BPD_Gurobi_Rounding", "IRWL1_Rounding"]
 
         reconstruction = atom_dict * beta_rounded
         L2_error = norm(ecg_signal-reconstruction)^2 / norm(ecg_signal)^2
