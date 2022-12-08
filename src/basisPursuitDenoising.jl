@@ -36,6 +36,10 @@ function basisPursuitDenoising(A, b, epsilon; weights=nothing,
 
     optimize!(model)
 
+    if termination_status(model) != MOI.OPTIMAL
+        return nothing
+    end
+
     opt_x = value.(x)
 
     if round_solution
@@ -52,7 +56,7 @@ function basisPursuitDenoising(A, b, epsilon; weights=nothing,
 end;
 
 function iterativeReweightedL1(A, b, epsilon; solver_output=0, solver="Gurobi",
-    round_solution=true, max_iter=100, numerical_stability_param=1e-8)
+    round_solution=true, max_iter=100, numerical_stability_param=1e-6)
 
     current_card, current_x = basisPursuitDenoising(A, b, epsilon,
                                                     solver_output=solver_output,
@@ -61,11 +65,15 @@ function iterativeReweightedL1(A, b, epsilon; solver_output=0, solver="Gurobi",
     iter_count = 0
     while iter_count < max_iter
         new_weights = 1 ./ abs.(current_x) .+ numerical_stability_param
-        new_card, new_x = basisPursuitDenoising(A, b, epsilon,
-                                                solver_output=solver_output,
-                                                solver=solver,
-                                                weights=new_weights,
-                                                round_solution=false)
+        output = basisPursuitDenoising(A, b, epsilon,
+                                       solver_output=solver_output,
+                                       solver=solver,
+                                       weights=new_weights,
+                                       round_solution=false)
+        if output == nothing
+            break
+        end
+        new_card, new_x = output
         if new_card > current_card
             break
         end
