@@ -94,7 +94,7 @@ else
    df1 = processData(INPUT_PATH, "")
 end
 
-if METHOD_NAME == "BPD_Gurobi_Rounding"
+if METHOD_NAME in ["BPD_Gurobi_Rounding", "IRWL1_Rounding"]
    OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "_rounded_aggrData.csv"
    df2 = processData(INPUT_PATH, "rounded_")
    CSV.write(INPUT_PATH * METHOD_NAME * "_rounded_aggrData.csv", df2)
