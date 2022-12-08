@@ -1,7 +1,7 @@
 include("helperLibrary.jl")
 
 function basisPursuitDenoising(A, b, epsilon; weights=nothing,
-    solver_output=0, solver="Gurobi", round_solution=true)
+    solver_output=0, solver="Gurobi", round_solution=true, max_weight=1e6)
 
     @assert solver in ["Gurobi", "SCS"]
 
@@ -12,6 +12,9 @@ function basisPursuitDenoising(A, b, epsilon; weights=nothing,
     end
 
     @assert size(weights)[1] == n
+
+    active_indices = findall(<=(max_weight), weights)
+    zero_indices = findall(>(max_weight), weights)
 
     if solver == "Gurobi"
         model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
@@ -29,10 +32,11 @@ function basisPursuitDenoising(A, b, epsilon; weights=nothing,
     @constraint(model, [i=1:n], -abs_x[i] <= x[i])
     @constraint(model, abs_residual .>= A * x .- b)
     @constraint(model, abs_residual .>= -A * x .+ b)
+    @constraint(model, [i in zero_indices], x[i] == 0)
 
     @constraint(model, sum(abs_residual[i]^2 for i=1:m) <= epsilon)
 
-    @objective(model, Min, sum(weights[i] * abs_x[i] for i=1:n))
+    @objective(model, Min, sum(weights[i] * abs_x[i] for i in active_indices))
 
     optimize!(model)
 
@@ -56,7 +60,7 @@ function basisPursuitDenoising(A, b, epsilon; weights=nothing,
 end;
 
 function iterativeReweightedL1(A, b, epsilon; solver_output=0, solver="Gurobi",
-    round_solution=true, max_iter=100, numerical_stability_param=1e-6)
+    round_solution=true, max_iter=50, numerical_stability_param=1e-6)
 
     current_card, current_x = basisPursuitDenoising(A, b, epsilon,
                                                     solver_output=solver_output,
@@ -74,7 +78,11 @@ function iterativeReweightedL1(A, b, epsilon; solver_output=0, solver="Gurobi",
             break
         end
         new_card, new_x = output
+        println(new_card)
         if new_card > current_card
+            break
+        end
+        if norm(new_x-current_x) <= 1e-6
             break
         end
         current_x = new_x
