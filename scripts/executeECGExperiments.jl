@@ -10,6 +10,7 @@ TASK_ID = ARGS[4]
 
 valid_methods = ["OMP",
                  "BPD_Gurobi_Rounding",
+                 "IRWL1_Rounding",
                  "SOC_Relax_Rounding",
                  "MISOC",
                  "MISOC_Backbone",
@@ -89,7 +90,7 @@ for patientID in patient_indices
     patient_results["L0_norm"] = []
     patient_results["execution_time"] = []
 
-    if METHOD_NAME == "BPD_Gurobi_Rounding"
+    if METHOD_NAME in ["BPD_Gurobi_Rounding", "IRWL1_Rounding"]
         patient_results["rounded_solution"] = []
         patient_results["rounded_L2_error"] = []
         patient_results["rounded_L1_error"] = []
@@ -179,7 +180,14 @@ for patientID in patient_indices
     elseif METHOD_NAME == "BPD_Gurobi_Rounding"
         trial_start = now()
         output = basisPursuitDenoising(A, b_observed, epsilon,
-                                       norm_function="L2",
+                                       solver="Gurobi", round_solution=true)
+        beta_fitted = output[4]
+        beta_rounded = output[2]
+        rounding_time = output[5]
+        trial_end_time = now()
+    elseif METHOD_NAME == "IRWL1_Rounding"
+        trial_start = now()
+        output = iterativeReweightedL1(A, b_observed, epsilon,
                                        solver="Gurobi", round_solution=true)
         beta_fitted = output[4]
         beta_rounded = output[2]

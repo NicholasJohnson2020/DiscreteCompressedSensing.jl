@@ -1,12 +1,17 @@
 include("helperLibrary.jl")
 
-function basisPursuitDenoising(A, b, epsilon;
-    norm_function="L2", solver_output=0, solver="Gurobi", round_solution=true)
+function basisPursuitDenoising(A, b, epsilon; weights=nothing,
+    solver_output=0, solver="Gurobi", round_solution=true)
 
     @assert solver in ["Gurobi", "SCS"]
-    @assert norm_function in ["L2", "L1"]
 
     (m, n) = size(A)
+
+    if weights == nothing
+        weights = ones(n)
+    end
+
+    @assert size(weights)[1] == n
 
     if solver == "Gurobi"
         model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
@@ -25,13 +30,9 @@ function basisPursuitDenoising(A, b, epsilon;
     @constraint(model, abs_residual .>= A * x .- b)
     @constraint(model, abs_residual .>= -A * x .+ b)
 
-    if norm_function == "L2"
-        @constraint(model, sum(abs_residual[i]^2 for i=1:m) <= epsilon)
-    else
-        @constraint(model, sum(abs_residual[i] for i=1:m) <= epsilon)
-    end
+    @constraint(model, sum(abs_residual[i]^2 for i=1:m) <= epsilon)
 
-    @objective(model, Min, sum(abs_x[i] for i=1:n))
+    @objective(model, Min, sum(weights[i] * abs_x[i] for i=1:n))
 
     optimize!(model)
 
@@ -46,6 +47,43 @@ function basisPursuitDenoising(A, b, epsilon;
         return num_support, rounded_x, sum(abs.(opt_x) .> 1e-6), opt_x, rounding_time
     else
         return sum(abs.(opt_x) .> 1e-6), opt_x
+    end
+
+end;
+
+function iterativeReweightedL1(A, b, epsilon; solver_output=0, solver="Gurobi",
+    round_solution=true, max_iter=100, numerical_stability_param=1e-8)
+
+    current_card, current_x = basisPursuitDenoising(A, b, epsilon,
+                                                    solver_output=solver_output,
+                                                    solver=solver,
+                                                    round_solution=false)
+    iter_count = 0
+    while iter_count < max_iter
+        new_weights = 1 ./ abs.(current_x) .+ numerical_stability_param
+        new_card, new_x = basisPursuitDenoising(A, b, epsilon,
+                                                solver_output=solver_output,
+                                                solver=solver,
+                                                weights=new_weights,
+                                                round_solution=false)
+        if new_card > current_card
+            break
+        end
+        current_x = new_x
+        current_card = new_card
+        iter_count = iter_count + 1
+    end
+
+    if round_solution
+        rounding_start = now()
+        rounded_x, num_support = roundSolution(current_x, A, b, epsilon)
+        rounding_end = now()
+        rounding_time = rounding_end - rounding_start
+        return num_support, rounded_x,
+               sum(abs.(current_x) .> 1e-6), current_x,
+               rounding_time, iter_count
+    else
+        return sum(abs.(current_x) .> 1e-6), current_x, iter_count
     end
 
 end;
