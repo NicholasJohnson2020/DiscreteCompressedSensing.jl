@@ -39,24 +39,18 @@ function isTerminal(one_indices, zero_indices, x_dim)
 end
 
 function solveSubproblem(A, b, epsilon, gamma; round_solution=false,
-    zero_indices=[], one_indices=[], subproblem_type="primal",
-    norm_function="L2")
+    zero_indices=[], one_indices=[], subproblem_type="primal")
 
     output = nothing
-    if (subproblem_type, norm_function) == ("primal", "L2")
-        output = solveSubproblemPrimalL2(A, b, epsilon, gamma,
-                                         round_solution=round_solution,
-                                         zero_indices=zero_indices,
-                                         one_indices=one_indices)
-    elseif (subproblem_type, norm_function) == ("primal", "L1")
-        output = solveSubproblemPrimalL1(A, b, epsilon, gamma,
-                                         round_solution=round_solution,
-                                         zero_indices=zero_indices,
-                                         one_indices=one_indices)
-    elseif (subproblem_type, norm_function) == ("dual", "L2")
-        out_val, opt_nu = solveSubproblemDualL2(A, b, epsilon, gamma,
-                                                zero_indices=zero_indices,
-                                                one_indices=one_indices)
+    if subproblem_type == "primal"
+        output = solveSubproblemPrimal(A, b, epsilon, gamma,
+                                       round_solution=round_solution,
+                                       zero_indices=zero_indices,
+                                       one_indices=one_indices)
+    elseif subproblem_type == "dual"
+        opt_val, opt_nu = solveSubproblemDual(A, b, epsilon, gamma,
+                                              zero_indices=zero_indices,
+                                              one_indices=one_indices)
         z_relax = float.(A'*opt_nu .> 0) - A'*opt_nu * sqrt(gamma) / 4
         for index in zero_indices
             z_relax[index] = 0
@@ -65,8 +59,7 @@ function solveSubproblem(A, b, epsilon, gamma; round_solution=false,
             z_relax[index] = 1
         end
         if round_solution
-            rounded_x, num_support = roundSolution(z_relax, A, b, epsilon,
-                                                   norm_function="L2")
+            rounded_x, num_support = roundSolution(z_relax, A, b, epsilon)
             output = (rounded_x, num_support, nothing, z_relax, opt_val)
         else
             z_relax = float.(A'*opt_nu .> 0) - A'*opt_nu * sqrt(gamma) / 4
@@ -79,8 +72,8 @@ end;
 
 function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
     round_at_nodes=false, output_to_file=false, output_file_name="temp.txt",
-    norm_function="L2", subproblem_type="primal", subproblem_warmstart=false,
-    BPD_backbone=false, use_default_gamma=false)
+    subproblem_type="primal", subproblem_warmstart=false, BPD_backbone=false,
+    use_default_gamma=false)
     """
     This function computes a certifiably near-optimal solution to the problem
         min ||U - X - Y||_F^2 + lambda * ||X||_F^2 + mu * ||Y||_F^2
@@ -134,7 +127,6 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
              solution.
     """
 
-    @assert norm_function in ["L2", "L1"]
     @assert subproblem_type in ["primal", "dual"]
     @assert round_at_nodes in [false, true]
     @assert subproblem_warmstart in [false, true]
@@ -154,8 +146,7 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
     init_zero_indices = []
     init_one_indices = []
 
-    output = basisPursuitDenoising(A, b, epsilon, norm_function=norm_function,
-                                   round_solution=true)
+    output = basisPursuitDenoising(A, b, epsilon, round_solution=true)
 
     num_support = output[1]
     rounded_x = output[2]
@@ -228,6 +219,7 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
     lower_bound_hist = [global_lower_bound]
 
     terminal_nodes = 0
+    infeasible_sets = []
     # Main branch and bound loop
     while (global_upper_bound - global_lower_bound) /
                                     global_upper_bound > termination_threshold
@@ -248,7 +240,10 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
         end
         # Select entry to branch on using most fractional rule
         # Will later change this to utilize strong branching
-        index = argmin(abs.(current_node.relaxed_binary_vector .- 0.5))
+        test_vector = abs.(current_node.relaxed_binary_vector .- 0.5)
+        test_vector[current_node.one_indices] .= 10
+        test_vector[current_node.zero_indices] .= 10
+        index = argmin(test_vector)
 
         # Construct the two child sets of indices from this parent node
         new_index_zero = (append!(copy(current_node.zero_indices), index),
@@ -260,8 +255,15 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
 
         for (zero_indices, one_indices) in new_index_list
 
+            this_set = Set(zero_indices)
+            for that_set in infeasible_sets
+                if issubset(that_set, this_set)
+                    continue
+                end
+            end
             pos_ind = all_indices[(!in).(all_indices, Ref(zero_indices))]
             if norm(A[:, pos_ind] * (A[:, pos_ind] \ b) - b) ^2 > epsilon
+                append!(infeasible_sets, this_set)
                 continue
             end
             upper_bound_obj = global_upper_bound
@@ -269,8 +271,7 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
                                      round_solution=round_at_nodes,
                                      zero_indices=zero_indices,
                                      one_indices=one_indices,
-                                     subproblem_type=subproblem_type,
-                                     norm_function=norm_function)
+                                     subproblem_type=subproblem_type)
             if round_at_nodes
                 (rounded_x, upper_bound_obj, x_relax, z_relax, lower_bound_obj) = output
             else
@@ -285,8 +286,7 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
                                                  round_solution=false,
                                                  zero_indices=zero_indices,
                                                  one_indices=one_indices,
-                                                 subproblem_type="primal",
-                                                 norm_function=norm_function)
+                                                 subproblem_type="primal")
                         upper_bound_sol = output[1]
                     else
                         upper_bound_sol = x_relax

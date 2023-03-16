@@ -50,6 +50,9 @@ function SparseRegression(X, Y, gamma, k; solver_output=1)
         t_val = callback_value(cb_data, t)
         append!(s_hist, [s_val])
         obj, grad_s = regobj(X,Y, s_val, gamma)
+        println(obj)
+        println(sum(s_val))
+        println()
         offset = sum(grad_s .* s_val)
         if t_val < obj
             con = @build_constraint( t >= obj + sum(grad_s[j] * s[j] for j=1:p) - offset)
@@ -74,10 +77,32 @@ function SparseRegression(X, Y, gamma, k; solver_output=1)
 end;
 
 function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10,
-                                warm_start=true, warm_start_params=nothing)
+                                warm_start=true, warm_start_params=nothing,
+                                BPD_backbone=false)
 
     (m, n) = size(A)
+    original_n = n
+    backbone = []
     gamma = gamma_init * n
+
+    if BPD_backbone
+
+        _, opt_x = basisPursuitDenoising(A, b, epsilon,
+                                         norm_function="L2",
+                                         round_solution=false)
+
+        for index=1:size(opt_x)[1]
+            if abs(opt_x[index]) > 1e-6
+                append!(backbone, index)
+            end
+        end
+        n = size(backbone)[1]
+        reduced_A = zeros(m, n)
+        for i=1:n
+            reduced_A[:, i] = A[:, backbone[i]]
+        end
+        A = reduced_A
+    end
 
     x_full = A \ b
     full_error = norm(A*x_full-b)^2
@@ -104,6 +129,9 @@ function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10,
         end
         current_support = best_support - 1
 
+        println("Current gamma attempt: $gamma")
+        println("Current cardinality attempt: $current_support")
+        println()
         _, current_beta, _ = SparseRegression(A, b, gamma, current_support, solver_output=0)
         current_error = norm(A*current_beta-b)^2
 
@@ -112,6 +140,9 @@ function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10,
             if gamma > gamma_max
                 break
             end
+            println("Current gamma attempt: $gamma")
+            println("Current cardinality attempt: $current_support")
+            println()
             _, current_beta, _ = SparseRegression(A, b, gamma, current_support, solver_output=0)
             current_error = norm(A*current_beta-b)^2
         end

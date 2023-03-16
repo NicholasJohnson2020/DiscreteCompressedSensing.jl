@@ -64,12 +64,10 @@ function perspectiveRelaxation(A, b, epsilon, lambda;
 end;
 
 
-function perspectiveFormulation(A, b, epsilon, lambda; norm_function="L2",
-    solver_output=0, solver="Gurobi", BPD_backbone=false,
-    use_default_lambda=false)
+function perspectiveFormulation(A, b, epsilon, lambda; solver_output=0,
+    solver="Gurobi", BPD_backbone=false, use_default_lambda=false)
 
     @assert solver in ["Gurobi", "SCS"]
-    @assert norm_function in ["L2", "L1"]
 
     (m, n) = size(A)
     original_n = n
@@ -78,7 +76,6 @@ function perspectiveFormulation(A, b, epsilon, lambda; norm_function="L2",
     if BPD_backbone
 
         _, opt_x = basisPursuitDenoising(A, b, epsilon,
-                                         norm_function=norm_function,
                                          round_solution=false)
 
         for index=1:size(opt_x)[1]
@@ -114,11 +111,7 @@ function perspectiveFormulation(A, b, epsilon, lambda; norm_function="L2",
     @constraint(model, abs_residual .>= A * x .- b)
     @constraint(model, abs_residual .>= -A * x .+ b)
 
-    if norm_function == "L2"
-        @constraint(model, sum(abs_residual[i]^2 for i=1:m) <= epsilon)
-    else
-        @constraint(model, sum(abs_residual[i] for i=1:m) <= epsilon)
-    end
+    @constraint(model, sum(abs_residual[i]^2 for i=1:m) <= epsilon)
 
     @constraint(model, [i=1:n], z[i] * theta[i] >= x[i]^2)
 

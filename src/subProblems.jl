@@ -1,4 +1,4 @@
-function solveSubproblemPrimalL2(A, b, epsilon, gamma;
+function solveSubproblemPrimal(A, b, epsilon, gamma;
     solver_output=0, round_solution=true, zero_indices=[], one_indices=[])
 
     (m, n) = size(A)
@@ -54,7 +54,7 @@ function solveSubproblemPrimalL2(A, b, epsilon, gamma;
 
 end;
 
-function solveSubproblemDualL2(A, b, epsilon, gamma;
+function solveSubproblemDual(A, b, epsilon, gamma;
     solver_output=0, zero_indices=[], one_indices=[])
 
     (m, n) = size(A)

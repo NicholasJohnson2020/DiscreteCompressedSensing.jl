@@ -48,8 +48,7 @@ function basisPursuitDenoising(A, b, epsilon; weights=nothing,
 
     if round_solution
         rounding_start = now()
-        rounded_x, num_support = roundSolution(opt_x, A, b, epsilon,
-                                               norm_function=norm_function)
+        rounded_x, num_support = roundSolution(opt_x, A, b, epsilon)
         rounding_end = now()
         rounding_time = rounding_end - rounding_start
         return num_support, rounded_x, sum(abs.(opt_x) .> 1e-6), opt_x, rounding_time
@@ -78,7 +77,6 @@ function iterativeReweightedL1(A, b, epsilon; solver_output=0, solver="Gurobi",
             break
         end
         new_card, new_x = output
-        println(new_card)
         if new_card > current_card
             break
         end
