@@ -113,7 +113,7 @@ function exactCompressedSensing(A, b, epsilon; gamma_init=1, gamma_max=1e10,
 
     if warm_start_params == nothing
         if warm_start
-            best_beta, best_support = exactCompressedSensingHeuristicAcc(A, b, epsilon)
+            best_beta, best_support = OMP(A, b, epsilon)
         else
             best_support = n
             best_beta = x_full
@@ -170,7 +170,7 @@ function exactCompressedSensingBinSearch(A, b, epsilon; gamma_init=1,
 
     if warm_start_params == nothing
         if warm_start
-            upper_beta, upper_support = exactCompressedSensingHeuristicAcc(A, b, epsilon)
+            upper_beta, upper_support = OMP(A, b, epsilon)
         else
             upper_support = n
             upper_beta = x_full
@@ -220,7 +220,7 @@ function exactCompressedSensingBinSearch(A, b, epsilon; gamma_init=1,
     return upper_support, upper_beta, lower_support
 end;
 
-function exactCompressedSensingHeuristic(A, b, epsilon)
+function OMP_legacy(A, b, epsilon)
 
     (m, n) = size(A)
 
@@ -272,7 +272,7 @@ function exactCompressedSensingHeuristic(A, b, epsilon)
 
 end;
 
-function exactCompressedSensingHeuristicAcc(A, b, epsilon)
+function OMP(A, b, epsilon)
 
     (m, n) = size(A)
 
