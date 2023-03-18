@@ -6,8 +6,8 @@ function sample_data(m, n, k, sigma, signal_to_noise_ratio)
     X = rand(data_dist, (m, n))
 
     beta_temp = rand(data_dist, n)
-    indices = randperm(p)[1:k]
-    beta = zeros(p)
+    indices = randperm(n)[1:k]
+    beta = zeros(n)
     for index in indices
         beta[index] = beta_temp[index]
     end
