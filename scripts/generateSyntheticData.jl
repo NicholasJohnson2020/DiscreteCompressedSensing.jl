@@ -28,10 +28,10 @@ NUM_TRIALS_PER_CONFIG = 50
 N = [200]
 #M = collect(100:100:1000)
 M = [100]
-K = collect(5:5:50)
-#K = [10]
-#ratios = collect(2:2:30)
-ratios = [10]
+#K = collect(5:5:50)
+K = [10]
+ratios = collect(2:2:30)
+#ratios = [10]
 # alphas = collect(0.05:0.05:0.95)
 alphas = [0.5]
 
