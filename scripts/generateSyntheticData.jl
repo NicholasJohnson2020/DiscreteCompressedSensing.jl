@@ -24,10 +24,10 @@ end
 file_path = ARGS[1]
 
 NUM_TRIALS_PER_CONFIG = 200
-#N = collect(100:100:1000)
-N = [200]
-M = collect(100:100:1000)
-#M = [100]
+N = collect(100:100:1000)
+#N = [200]
+#M = collect(100:100:1000)
+M = [100]
 #K = collect(5:5:50)
 K = [10]
 # ratios = collect(2:2:30)
@@ -46,7 +46,8 @@ data_dict["Trials"] = NUM_TRIALS_PER_CONFIG
 data_dict["N"] = N
 data_dict["P"] = M
 data_dict["K"] = K
-data_dict["signal_to_noise"] = alpha
+data_dict["signal_to_noise"] = ratios
+data_dict["alpha"] = alphas
 data_dict["sigma"] = sigma
 
 for n in N, m in M, k in K, signal_to_noise in ratios, alpha in alphas
