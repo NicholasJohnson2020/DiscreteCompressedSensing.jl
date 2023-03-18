@@ -30,7 +30,10 @@ N = collect(100:100:1000)
 M = [100]
 #K = collect(5:5:50)
 K = [10]
-alpha = [0.5]
+# ratios = collect(2:2:30)
+ratios = [10]
+# alphas = collect(0.05:0.05:0.95)
+alphas = [0.5]
 
 sigma = 1
 
@@ -46,11 +49,12 @@ data_dict["K"] = K
 data_dict["signal_to_noise"] = alpha
 data_dict["sigma"] = sigma
 
-for n in N, m in M, k in K, signal_to_noise in alpha
+for n in N, m in M, k in K, signal_to_noise in ratios, alpha in alphas
 
     global config_count += 1
     param_dict[config_count] = Dict("N"=>n, "M"=>m, "K"=>k,
-                                    "signal_ratio"=>signal_to_noise)
+                                    "signal_ratio"=>signal_to_noise,
+                                    "alpha"=>alpha)
 
     current_data_dict = Dict()
     for trial_num = 1:NUM_TRIALS_PER_CONFIG
