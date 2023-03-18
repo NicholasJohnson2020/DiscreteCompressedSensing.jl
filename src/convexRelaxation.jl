@@ -1,3 +1,41 @@
+function SOSRelaxation(A, b, epsilon, lambda; solver_output=false,
+    solver="Mosek", use_default_lambda=false, relaxation_degree=1)
+
+    @assert solver in ["Mosek"]
+
+    (m, n) = size(A)
+
+    if use_default_lambda
+        lambda = sqrt(n)
+    end
+
+    @polyvar x[1:n] z[1:n]
+    obj_func = sum(z[i] + x[i]^2/gamma for i=1:n)
+    basis_large = monomials([x; z], 0:relaxation_degree)
+    basis_small = monomials([x; z], 0:(relaxation_degree-1))
+
+    model = Model(Mosek.Optimizer)
+    set_optimizer_attribute(model, MOI.Silent(), !solver_output)
+
+    @variable(model, t[i=1:n], Poly(basis_small))
+    #@variable(model, r[i=1:n], Poly(basis_small))
+    @variable(model, s_0, SOSPoly(basis_large))
+    @variable(model, s_1, SOSPoly(basis_small))
+    @variable(model, opt_val)
+
+    @constraint(model, obj_func - opt_val == sum(t[i] * (z[i]*x[i]-x[i]) for i=1:n) -
+                sum((z[i]^2-z[i]) for i=1:n) + s_0 +
+                s_1 * (epsilon-(A*x-b)'*(A*x-b)))
+
+    @objective(model, Max, opt_val)
+
+    optimize!(model)
+
+    @assert termination_status(model) == MOI.OPTIMAL
+    return objective_value(model)
+
+end
+
 function perspectiveRelaxation(A, b, epsilon, lambda;
     solver_output=0, solver="Gurobi", round_solution=true,
     use_default_lambda=false)
@@ -7,7 +45,7 @@ function perspectiveRelaxation(A, b, epsilon, lambda;
     (m, n) = size(A)
 
     if use_default_lambda
-        lambda = sqrt(size(A)[2])
+        lambda = sqrt(n)
     end
 
     if solver == "Gurobi"
@@ -92,7 +130,7 @@ function perspectiveFormulation(A, b, epsilon, lambda; solver_output=0,
     end
 
     if use_default_lambda
-        lambda = sqrt(size(A)[2])
+        lambda = sqrt(n)
     end
 
     if solver == "Gurobi"
