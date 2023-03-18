@@ -24,10 +24,11 @@ end
 file_path = ARGS[1]
 
 NUM_TRIALS_PER_CONFIG = 200
-#N = collect(100:100:1000)
-N = [200]
-M = collect(100:100:1000)
-#M = [100]
+N = collect(100:100:1000)
+#N = [200]
+#M = collect(100:100:1000)
+M = [100]
+#K = collect(5:5:50)
 K = [10]
 alpha = [0.5]
 
