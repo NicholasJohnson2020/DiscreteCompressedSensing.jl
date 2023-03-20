@@ -1,6 +1,3 @@
-using Pkg
-Pkg.activate("/home/nagj/.julia/environments/sparse_discrete")
-
 include("../discreteCompressedSensing.jl")
 
 using JSON, Dates
@@ -15,19 +12,23 @@ function unserialize_matrix(mat)
     return output
 end;
 
-epsilon_list = collect(1:0.05:1.5)
 numerical_threshold = 1e-4
 
 method_name = ARGS[1]
 input_path = ARGS[2]
-output_path = ARGS[3]
-warm_start_path = ARGS[4]
-task_ID = ARGS[5]
+output_path = ARGS[3] * method_name * "/"
+task_ID_input = parse(Int64, ARGS[4])
+num_tasks_input = parse(Int64, ARGS[5])
+epsilon_BnB = 0.1
 
-valid_methods = ["BPD", "BPD_Rounded", "Exact_Naive", "Exact_Binary",
-                 "Exact_Naive_Warm", "Exact_Binary_Warm", "MISOC", "SOC_Relax",
-                 "SOC_Relax_Rounded", "Heuristic", "Cutting_Planes",
-                 "Cutting_Planes_Warm"]
+#old_valid_methods = ["BPD", "BPD_Rounded", "Exact_Naive", "Exact_Binary",
+#                 "Exact_Naive_Warm", "Exact_Binary_Warm", "MISOC", "SOC_Relax",
+#                 "SOC_Relax_Rounded", "Heuristic", "Cutting_Planes",
+#                 "Cutting_Planes_Warm"]
+
+valid_methods = ["BPD", "BPD_Rounded", "IRWL1", "IRWL1_Rounded", "OMP",
+                 "MISOC", "SOC_Relax", "SOC_Relax_Rounded", "BnB_Primal",
+                 "BnB_Dual", "SOS"]
 
 @assert method_name in valid_methods
 
@@ -48,179 +49,188 @@ open(input_path * "params.json", "r") do f
 end
 
 NUM_TRIALS = synthetic_data["Trials"]
-n = param_dict[string(task_ID)]["N"]
-p = param_dict[string(task_ID)]["P"]
-k = param_dict[string(task_ID)]["K"]
-ratio = param_dict[string(task_ID)]["noise_ratio"]
 
-key = Dict{String, Real}(param_dict[string(task_ID)])
-experiment_data = synthetic_data[string(key)]
+task_ID_list = collect((task_ID_input+1):num_tasks_input:length(param_dict))
 
-param_dict = nothing
-synthetic_data = nothing
-GC.gc()
+start_time_global = now()
 
-experiment_results = Dict()
-experiment_results["Method"] = method_name
-experiment_results["N"] = n
-experiment_results["P"] = p
-experiment_results["K"] = k
-experiment_results["noise_to_signal"] = ratio
-experiment_results["Trials"] = NUM_TRIALS
-experiment_results["epsilon_values"] = epsilon_list
+for task_ID in task_ID_list
 
-for epsilon in epsilon_list
-    epsilon_results = Dict()
-    epsilon_results["solution"] = []
-    epsilon_results["residual_error"] = []
-    epsilon_results["beta_error"] = []
-    epsilon_results["fitted_k"] = []
-    epsilon_results["true_discovery"] = []
-    epsilon_results["false_discovery"] = []
-    epsilon_results["execution_time"] = []
+    global synthetic_data
+    global param_dict
 
-    if method_name == "BPD_Rounded"
-        epsilon_results["rounded_solution"] = []
-        epsilon_results["rounded_residual_error"] = []
-        epsilon_results["rounded_beta_error"] = []
-        epsilon_results["rounded_fitted_k"] = []
-        epsilon_results["rounded_true_discovery"] = []
-        epsilon_results["rounded_false_discovery"] = []
-        epsilon_results["rounded_execution_time"] = []
+    n = param_dict[string(task_ID)]["N"]
+    m = param_dict[string(task_ID)]["M"]
+    k = param_dict[string(task_ID)]["K"]
+    ratio = param_dict[string(task_ID)]["signal_ratio"]
+    alpha = param_dict[string(task_ID)]["alpha"]
+
+    key = Dict{String, Real}(param_dict[string(task_ID)])
+    experiment_data = synthetic_data[string(key)]
+
+    param_dict = nothing
+    synthetic_data = nothing
+    GC.gc()
+
+    experiment_results = Dict()
+    experiment_results["Method"] = method_name
+    experiment_results["N"] = n
+    experiment_results["M"] = m
+    experiment_results["K"] = k
+    experiment_results["signal_to_noise"] = ratio
+    experiment_results["alpha"] = alpha
+    experiment_results["Trials"] = NUM_TRIALS
+
+    experiment_results["solution"] = []
+    experiment_results["residual_error"] = []
+    experiment_results["beta_error"] = []
+    experiment_results["fitted_k"] = []
+    experiment_results["true_discovery"] = []
+    experiment_results["false_discovery"] = []
+    experiment_results["execution_time"] = []
+
+    if method_name in ["SOC_Relax", "SOC_Relax_Rounded", "SOS"]
+        experiment_results["lower_bound"]
     end
 
-    if method_name == "SOC_Relax_Rounded"
-        epsilon_results["rounded_x_solution"] = []
-        epsilon_results["rounded_x_residual_error"] = []
-        epsilon_results["rounded_x_beta_error"] = []
-        epsilon_results["rounded_x_fitted_k"] = []
-        epsilon_results["rounded_x_true_discovery"] = []
-        epsilon_results["rounded_x_false_discovery"] = []
-        epsilon_results["rounded_x_execution_time"] = []
-
-        epsilon_results["rounded_z_solution"] = []
-        epsilon_results["rounded_z_residual_error"] = []
-        epsilon_results["rounded_z_beta_error"] = []
-        epsilon_results["rounded_z_fitted_k"] = []
-        epsilon_results["rounded_z_true_discovery"] = []
-        epsilon_results["rounded_z_false_discovery"] = []
-        epsilon_results["rounded_z_execution_time"] = []
+    if method_name in ["BPD_Rounded", "IRWL1_Rounded", "SOC_Relax_Rounded"]
+        experiment_results["rounded_solution"] = []
+        experiment_results["rounded_residual_error"] = []
+        experiment_results["rounded_beta_error"] = []
+        experiment_results["rounded_fitted_k"] = []
+        experiment_results["rounded_true_discovery"] = []
+        experiment_results["rounded_false_discovery"] = []
+        experiment_results["rounded_execution_time"] = []
     end
 
-    if method_name in ["Cutting_Planes", "Cutting_Planes_Warm"]
-        epsilon_results["num_cuts"] = []
+    if method_name in ["BnB_Primal", "BnB_Dual"]
+        experiment_results["root_node_gap"] = []
+        experiment_results["num_nodes"] = []
+        experiment_results["terminal_nodes"] = []
+        experiment_results["lb_history"] = []
+        experiment_results["ub_history"] = []
+        experiment_results["epsilon_BnB"] = []
     end
 
-    experiment_results[epsilon] = epsilon_results
-end
+    start_time = now()
 
-start_time = now()
+    for trial_num=1:NUM_TRIALS
 
-for trial_num=1:NUM_TRIALS
-    X = experiment_data[string(trial_num)]["X"]
-    X = unserialize_matrix(X)
-    Y = experiment_data[string(trial_num)]["Y"]
-    true_k = experiment_data[string(trial_num)]["k"]
-    true_beta = experiment_data[string(trial_num)]["beta"]
+        println("Starting trial " * string(trial_num) * " of " * string(NUM_TRIALS))
 
-    beta_full = pinv(X'*X)*X'*Y
-    full_error = norm(X*beta_full-Y)^2
-
-    for epsilon in epsilon_list
+        X = experiment_data[string(trial_num)]["X"]
+        X = unserialize_matrix(X)
+        Y = experiment_data[string(trial_num)]["Y"]
+        true_k = experiment_data[string(trial_num)]["k"]
+        true_beta = experiment_data[string(trial_num)]["beta"]
 
         rounding_time = nothing
-        rounding_time_z = nothing
-        rounding_time_x = nothing
         gamma = n^2
         objective_value = 0
         beta_rounded = zeros(n)
-        beta_rounded_z = zeros(n)
-        beta_rounded_x = zeros(n)
-        num_cuts = 0
 
         if method_name == "BPD"
             trial_start = now()
-            _, beta_fitted = basisPursuitDenoising(X, Y, epsilon * full_error,
-                                                   solver="Gurobi",
+            _, beta_fitted = basisPursuitDenoising(X, Y, alpha * norm(Y)^2,
                                                    round_solution=false)
             trial_end_time = now()
         elseif method_name == "BPD_Rounded"
             trial_start = now()
-            output = basisPursuitDenoising(X, Y, epsilon * full_error,
-                                           solver="Gurobi", round_solution=true)
-            beta_fitted = output[4]
-            beta_rounded = output[2]
-            rounding_time = output[5]
+            _, beta_fitted = basisPursuitDenoising(X, Y, alpha * norm(Y)^2,
+                                                   round_solution=false)
             trial_end_time = now()
-        elseif method_name == "Exact_Naive"
+            rounding_start = now()
+            beta_rounded, _ = roundSolution(beta_fitted, X, Y, alpha * norm(Y)^2)
+            rounding_time = now() - rounding_start
+        elseif method_name == "IRWL1"
             trial_start = now()
-            _, beta_fitted = exactCompressedSensing(X, Y, epsilon * full_error,
-                                                    warm_start=false)
+            _, beta_fitted, _ = iterativeReweightedL1(X, Y, alpha * norm(Y)^2,
+                                                      round_solution=false)
             trial_end_time = now()
-        elseif method_name == "Exact_Binary"
+        elseif method_name == "IRWL1_Rounded"
             trial_start = now()
-            _, beta_fitted = exactCompressedSensingBinSearch(X, Y,
-                                                        epsilon * full_error,
-                                                        warm_start=false)
+            _, beta_fitted, _ = iterativeReweightedL1(X, Y, alpha * norm(Y)^2,
+                                                      round_solution=false)
             trial_end_time = now()
-        elseif method_name == "Exact_Naive_Warm"
+            rounding_start = now()
+            beta_rounded, _ = roundSolution(beta_fitted, X, Y, alpha * norm(Y)^2)
+            rounding_time = now() - rounding_start
+        elseif method_name == "OMP"
             trial_start = now()
-            _, beta_fitted = exactCompressedSensing(X, Y, epsilon * full_error,
-                                                    warm_start=true)
-            trial_end_time = now()
-        elseif method_name == "Exact_Binary_Warm"
-            trial_start = now()
-            _, beta_fitted = exactCompressedSensingBinSearch(X, Y,
-                                                        epsilon * full_error,
-                                                        warm_start=true)
+            beta_fitted, _ = OMP(X, Y, alpha * norm(Y)^2)
             trial_end_time = now()
         elseif method_name == "MISOC"
             trial_start = now()
-            beta_fitted, _, _ = perspectiveFormulation(X, Y, epsilon*full_error,
+            beta_fitted, _, _ = perspectiveFormulation(X, Y, alpha * norm(Y)^2,
                                                        gamma)
             trial_end_time = now()
         elseif method_name == "SOC_Relax"
             trial_start = now()
-            beta_fitted, _, _ = perspectiveRelaxation(X, Y, epsilon*full_error,
-                                                      gamma, round_solution=false)
+            beta_fitted, _, objective_value = perspectiveRelaxation(X, Y,
+                                                    alpha * norm(Y)^2,
+                                                    gamma, round_solution=false)
             trial_end_time = now()
         elseif method_name == "SOC_Relax_Rounded"
             trial_start = now()
-            output = perspectiveRelaxation(X, Y, epsilon*full_error,
-                                           gamma, round_solution=true)
-            beta_fitted = output[5]
-            beta_rounded_z = output[2]
-            beta_rounded_x = output[4]
-            objective_value = output[7]
-            rounding_time_x = output[8]
-            rounding_time_z = output[9]
+            beta_fitted, opt_z, objective_value = perspectiveRelaxation(X, Y,
+                                                    alpha * norm(Y)^2,
+                                                    gamma, round_solution=false)
             trial_end_time = now()
-        elseif method_name == "Heuristic"
+            rounding_start = now()
+            beta_rounded, _ = roundSolution(opt_z, X, Y, alpha * norm(Y)^2)
+            rounding_time = now() - rounding_start
+        elseif method_name == "BnB_Primal"
             trial_start = now()
-            beta_fitted, _ = exactCompressedSensingHeuristicAcc(X, Y,
-                                                             epsilon*full_error)
+            output = CS_BnB(X, Y, alpha * norm(Y)^2, gamma,
+                            termination_threshold=epsilon_BnB,
+                            subproblem_type="primal", BPD_backbone=true,
+                            use_default_gamma=false)
             trial_end_time = now()
-        elseif method_name == "Cutting_Planes"
-            trial_start = now()
-            output = CuttingPlanes(X, Y, epsilon * full_error, gamma)
             beta_fitted = output[1]
-            num_cuts = output[4]
-            trial_end_time = now()
-        elseif method_name == "Cutting_Planes_Warm"
-            warm_start_data = Dict()
-            open(warm_start_path * "_" * string(task_ID) * ".json", "r") do f
-                #global warm_start_data
-                dicttxt = JSON.read(f, String)  # file information to string
-                warm_start_data = JSON.parse(dicttxt)  # parse and transform data
-                warm_start_data = JSON.parse(warm_start_data)
-            end
-            upper_bound = warm_start_data[string(epsilon)]["solution"][trial_num]
+            num_nodes = output[4]
+            ub_hist = output[5]
+            lb_hist = output[6]
+            terminal_nodes = output[8]
+
+            root_ub = ub_hist[1]
+            root_lb = lb_hist[1]
+
+            append!(experiment_results["num_nodes"], num_nodes)
+            append!(experiment_results["terminal_nodes"], terminal_nodes)
+            append!(experiment_results["lb_history"], [lb_hist])
+            append!(experiment_results["ub_history"], [ub_hist])
+            append!(experiment_results["epsilon_BnB"], epsilon_BnB)
+            append!(experiment_results["root_node_gap"], (root_ub-root_lb)/root_ub)
+        elseif method_name == "BnB_Dual"
             trial_start = now()
-            output = CuttingPlanes(X, Y, epsilon * full_error, gamma,
-                                   upper_bound_x_sol=upper_bound)
-            beta_fitted = output[1]
-            num_cuts = output[4]
+            output = CS_BnB(X, Y, alpha * norm(Y)^2, gamma,
+                            termination_threshold=epsilon_BnB,
+                            subproblem_type="dual", BPD_backbone=true,
+                            use_default_gamma=false)
             trial_end_time = now()
+            beta_fitted = output[1]
+            num_nodes = output[4]
+            ub_hist = output[5]
+            lb_hist = output[6]
+            terminal_nodes = output[8]
+
+            root_ub = ub_hist[1]
+            root_lb = lb_hist[1]
+
+            append!(experiment_results["num_nodes"], num_nodes)
+            append!(experiment_results["terminal_nodes"], terminal_nodes)
+            append!(experiment_results["lb_history"], [lb_hist])
+            append!(experiment_results["ub_history"], [ub_hist])
+            append!(experiment_results["epsilon_BnB"], epsilon_BnB)
+            append!(experiment_results["root_node_gap"], (root_ub-root_lb)/root_ub)
+        elseif method_name == "SOS"
+            trial_start = now()
+            objective_value = SOSRelaxation(X, Y, alpha * norm(Y)^2, gamma,
+                                            solver_output=false,
+                                            use_default_lambda=false,
+                                            relaxation_degree=1)
+            trial_end_time = now()
+            beta_fitted = zeros(n)
         end
 
         residual_error = norm(X * beta_fitted - Y)^2
@@ -244,7 +254,11 @@ for trial_num=1:NUM_TRIALS
         append!(experiment_results[epsilon]["false_discovery"], false_discovery)
         append!(experiment_results[epsilon]["execution_time"], elapsed_time)
 
-        if method_name == "BPD_Rounded"
+        if method_name in ["SOC_Relax", "SOC_Relax_Rounded", "SOS"]
+            append!(experiment_results["lower_bound"], objective_value)
+        end
+
+        if method_name in ["BPD_Rounded", "IRWL1_Rounded", "SOC_Relax_Rounded"]
             rounded_residual_error = norm(X * beta_rounded - Y)^2
             rounded_beta_error = norm(true_beta - beta_rounded)^2 / norm(true_beta)^2
             rounded_fitted_k = sum(abs.(beta_rounded) .> numerical_threshold)
@@ -274,76 +288,13 @@ for trial_num=1:NUM_TRIALS
                     rounded_elapsed_time)
         end
 
-        if method_name == "SOC_Relax_Rounded"
-            x_residual_error = norm(X * beta_rounded_x - Y)^2
-            x_beta_error = norm(true_beta - beta_rounded_x)^2 / norm(true_beta)^2
-            x_fitted_k = sum(abs.(beta_rounded_x) .> numerical_threshold)
-            x_true_discovery = sum(abs.(beta_rounded_x[abs.(true_beta) .> 1e-6]) .> numerical_threshold)
-            x_true_discovery /= true_k
-            x_discovered_indices = abs.(beta_rounded_x) .>numerical_threshold
-            if x_fitted_k == 0
-                x_false_discovery = 0
-            else
-                x_false_discovery = sum(abs.(true_beta[x_discovered_indices]) .< 1e-6) / sum(x_discovered_indices)
-            end
-            x_elapsed_time = Dates.value(rounding_time_x)
-
-            append!(experiment_results[epsilon]["rounded_x_solution"],
-                    [beta_rounded_x])
-            append!(experiment_results[epsilon]["rounded_x_residual_error"],
-                    x_residual_error)
-            append!(experiment_results[epsilon]["rounded_x_beta_error"],
-                    x_beta_error)
-            append!(experiment_results[epsilon]["rounded_x_fitted_k"],
-                    x_fitted_k)
-            append!(experiment_results[epsilon]["rounded_x_true_discovery"],
-                    x_true_discovery)
-            append!(experiment_results[epsilon]["rounded_x_false_discovery"],
-                    x_false_discovery)
-            append!(experiment_results[epsilon]["rounded_x_execution_time"],
-                    x_elapsed_time)
-
-            z_residual_error = norm(X * beta_rounded_z - Y)^2
-            z_beta_error = norm(true_beta - beta_rounded_z)^2 / norm(true_beta)^2
-            z_fitted_k = sum(abs.(beta_rounded_z) .> numerical_threshold)
-            z_true_discovery = sum(abs.(beta_rounded_z[abs.(true_beta) .> 1e-6]) .> numerical_threshold)
-            z_true_discovery /= true_k
-            z_discovered_indices = abs.(beta_rounded_z) .>numerical_threshold
-            if z_fitted_k == 0
-                z_false_discovery = 0
-            else
-                z_false_discovery = sum(abs.(true_beta[z_discovered_indices]) .< 1e-6) / sum(z_discovered_indices)
-            end
-            z_elapsed_time = Dates.value(rounding_time_z)
-
-            append!(experiment_results[epsilon]["rounded_z_solution"],
-                    [beta_rounded_z])
-            append!(experiment_results[epsilon]["rounded_z_residual_error"],
-                    z_residual_error)
-            append!(experiment_results[epsilon]["rounded_z_beta_error"],
-                    z_beta_error)
-            append!(experiment_results[epsilon]["rounded_z_fitted_k"],
-                    z_fitted_k)
-            append!(experiment_results[epsilon]["rounded_z_true_discovery"],
-                    z_true_discovery)
-            append!(experiment_results[epsilon]["rounded_z_false_discovery"],
-                    z_false_discovery)
-            append!(experiment_results[epsilon]["rounded_z_execution_time"],
-                    z_elapsed_time)
-        end
-
-        if method_name in ["Cutting_Planes", "Cutting_Planes_Warm"]
-            append!(experiment_results[epsilon]["num_cuts"], num_cuts)
-        end
-
     end
 
+    f = open(output_path * "_" * string(task_ID) * ".json","w")
+    JSON.print(f, JSON.json(experiment_results))
+    close(f)
+
+    total_time = now() - start_time
+    print("Total execution time: ")
+    println(total_time)
 end
-
-f = open(output_path * "_" * string(task_ID) * ".json","w")
-JSON.print(f, JSON.json(experiment_results))
-close(f)
-
-total_time = now() - start_time
-print("Total execution time: ")
-println(total_time)
