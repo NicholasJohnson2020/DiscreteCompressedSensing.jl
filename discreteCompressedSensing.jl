@@ -1,7 +1,8 @@
 using JuMP, SCS, Gurobi, LinearAlgebra, Random, Dates, SparseArrays
 using DataStructures, ProgressMeter, Base.Threads
 using JSON, MAT, Statistics, Distributions
-using TSSOS, DynamicPolynomials, SumOfSquares, Mosek
+using DynamicPolynomials, SumOfSquares, Mosek
+#using TSSOS
 
 GUROBI_ENV = Gurobi.Env()
 
