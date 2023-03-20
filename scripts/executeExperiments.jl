@@ -246,13 +246,13 @@ for task_ID in task_ID_list
         end
         elapsed_time = Dates.value(trial_end_time - trial_start)
 
-        append!(experiment_results[epsilon]["solution"], [beta_fitted])
-        append!(experiment_results[epsilon]["residual_error"], residual_error)
-        append!(experiment_results[epsilon]["beta_error"], beta_error)
-        append!(experiment_results[epsilon]["fitted_k"], fitted_k)
-        append!(experiment_results[epsilon]["true_discovery"], true_discovery)
-        append!(experiment_results[epsilon]["false_discovery"], false_discovery)
-        append!(experiment_results[epsilon]["execution_time"], elapsed_time)
+        append!(experiment_results["solution"], [beta_fitted])
+        append!(experiment_results["residual_error"], residual_error)
+        append!(experiment_results["beta_error"], beta_error)
+        append!(experiment_results["fitted_k"], fitted_k)
+        append!(experiment_results["true_discovery"], true_discovery)
+        append!(experiment_results["false_discovery"], false_discovery)
+        append!(experiment_results["execution_time"], elapsed_time)
 
         if method_name in ["SOC_Relax", "SOC_Relax_Rounded", "SOS"]
             append!(experiment_results["lower_bound"], objective_value)
@@ -272,19 +272,17 @@ for task_ID in task_ID_list
             end
             rounded_elapsed_time = Dates.value(rounding_time)
 
-            append!(experiment_results[epsilon]["rounded_solution"],
-                    [beta_rounded])
-            append!(experiment_results[epsilon]["rounded_residual_error"],
+            append!(experiment_results["rounded_solution"], [beta_rounded])
+            append!(experiment_results["rounded_residual_error"],
                     rounded_residual_error)
-            append!(experiment_results[epsilon]["rounded_beta_error"],
+            append!(experiment_results["rounded_beta_error"],
                     rounded_beta_error)
-            append!(experiment_results[epsilon]["rounded_fitted_k"],
-                    rounded_fitted_k)
-            append!(experiment_results[epsilon]["rounded_true_discovery"],
+            append!(experiment_results["rounded_fitted_k"], rounded_fitted_k)
+            append!(experiment_results["rounded_true_discovery"],
                     rounded_true_discovery)
-            append!(experiment_results[epsilon]["rounded_false_discovery"],
+            append!(experiment_results["rounded_false_discovery"],
                     rounded_false_discovery)
-            append!(experiment_results[epsilon]["rounded_execution_time"],
+            append!(experiment_results["rounded_execution_time"],
                     rounded_elapsed_time)
         end
 
