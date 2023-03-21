@@ -4,7 +4,7 @@ using JSON, MAT, Statistics, Distributions
 using DynamicPolynomials, SumOfSquares, Mosek
 #using TSSOS
 
-#GUROBI_ENV = Gurobi.Env()
+GUROBI_ENV = Gurobi.Env()
 
 include("src/basisPursuitDenoising.jl")
 include("src/exactCompressedSensing.jl")
