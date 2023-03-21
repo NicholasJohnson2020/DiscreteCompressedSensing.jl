@@ -133,6 +133,9 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
 
     start_time = now()
 
+    A = convert(Array{Float64,2}, A)
+    b = convert(Array{Float64,1}, b)
+
     if norm(A * (A \ b) - b)^2 > epsilon
         println("Problem is infeasible.")
         return false
