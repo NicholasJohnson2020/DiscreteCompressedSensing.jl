@@ -90,7 +90,7 @@ for task_ID in task_ID_list
     experiment_results["execution_time"] = []
 
     if method_name in ["SOC_Relax", "SOC_Relax_Rounded", "SOS"]
-        experiment_results["lower_bound"]
+        experiment_results["lower_bound"] = []
     end
 
     if method_name in ["BPD_Rounded", "IRWL1_Rounded", "SOC_Relax_Rounded"]
