@@ -74,6 +74,7 @@ function processData(input_path, method_name, prefix="")
          append!(current_row, Statistics.std(exp_data["num_nodes"]) / (num_samples^0.5))
          append!(current_row, Statistics.mean(exp_data["terminal_nodes"]))
          append!(current_row, Statistics.std(exp_data["terminal_nodes"]) / (num_samples^0.5))
+         append!(current_row, exp_data["epsilon_BnB"][1])
       end
 
       push!(df, current_row)
