@@ -50,30 +50,30 @@ function processData(input_path, method_name, prefix="")
                      exp_data["signal_to_noise"],
                      exp_data["alpha"],
                      Statistics.mean(exp_data[prefix * "residual_error"]),
-                     Statistics.std(exp_data[prefix * "residual_error"])/(num_samples^0.5),
+                     Statistics.std(exp_data[prefix * "residual_error"]) / (num_samples^0.5),
                      Statistics.mean(exp_data[prefix * "beta_error"]),
-                     Statistics.std(exp_data[prefix * "beta_error"])/(num_samples^0.5),
+                     Statistics.std(exp_data[prefix * "beta_error"]) / (num_samples^0.5),
                      Statistics.mean(exp_data[prefix * "fitted_k"]),
-                     Statistics.std(exp_data[prefix * "fitted_k"])/(num_samples^0.5),
+                     Statistics.std(exp_data[prefix * "fitted_k"]) / (num_samples^0.5),
                      Statistics.mean(exp_data[prefix * "true_discovery"]),
-                     Statistics.std(exp_data[prefix * "true_discovery"])/(num_samples^0.5),
+                     Statistics.std(exp_data[prefix * "true_discovery"]) / (num_samples^0.5),
                      Statistics.mean(exp_data[prefix * "false_discovery"]),
-                     Statistics.std(exp_data[prefix * "false_discovery"])/(num_samples^0.5),
+                     Statistics.std(exp_data[prefix * "false_discovery"]) / (num_samples^0.5),
                      Statistics.mean(exp_data[prefix "execution_time"][2:end]),
-                     Statistics.std(exp_data[prefix * "execution_time"][2:end])/(num_samples^0.5)]
+                     Statistics.std(exp_data[prefix * "execution_time"][2:end]) / (num_samples^0.5)]
 
       if method_name in ["SOC_Relax", "SOC_Relax_Rounded", "SOS"]
          append!(current_row, Statistics.mean(exp_data["lower_bound"]))
-         append!(current_row, Statistics.std(exp_data["lower_bound"])/(num_samples^0.5))
+         append!(current_row, Statistics.std(exp_data["lower_bound"]) / (num_samples^0.5))
       end
 
       if method_name in ["BnB_Primal", "BnB_Dual"]
          append!(current_row, Statistics.mean(exp_data["root_node_gap"]))
-         append!(current_row, Statistics.std(exp_data["root_node_gap"])/(num_samples^0.5))
+         append!(current_row, Statistics.std(exp_data["root_node_gap"]) / (num_samples^0.5))
          append!(current_row, Statistics.mean(exp_data["num_nodes"]))
-         append!(current_row, Statistics.std(exp_data["num_nodes"])/(num_samples^0.5))
+         append!(current_row, Statistics.std(exp_data["num_nodes"]) / (num_samples^0.5))
          append!(current_row, Statistics.mean(exp_data["terminal_nodes"]))
-         append!(current_row, Statistics.std(exp_data["terminal_nodes"])/(num_samples^0.5))
+         append!(current_row, Statistics.std(exp_data["terminal_nodes"]) / (num_samples^0.5))
       end
 
       push!(df, current_row)
