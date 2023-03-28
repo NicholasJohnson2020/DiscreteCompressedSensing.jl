@@ -59,7 +59,7 @@ function processData(input_path, method_name, prefix="")
                      Statistics.std(exp_data[prefix * "true_discovery"]) / (num_samples^0.5),
                      Statistics.mean(exp_data[prefix * "false_discovery"]),
                      Statistics.std(exp_data[prefix * "false_discovery"]) / (num_samples^0.5),
-                     Statistics.mean(exp_data[prefix "execution_time"][2:end]),
+                     Statistics.mean(exp_data[prefix * "execution_time"][2:end]),
                      Statistics.std(exp_data[prefix * "execution_time"][2:end]) / (num_samples^0.5)]
 
       if method_name in ["SOC_Relax", "SOC_Relax_Rounded", "SOS"]
