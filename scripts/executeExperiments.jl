@@ -184,7 +184,7 @@ for task_ID in task_ID_list
             output = CS_BnB(X, Y, alpha * norm(Y)^2, gamma,
                             termination_threshold=epsilon_BnB,
                             subproblem_type="primal", BPD_backbone=true,
-                            use_default_gamma=false)
+                            use_default_gamma=false, round_at_nodes=true)
             trial_end_time = now()
             beta_fitted = output[1]
             num_nodes = output[4]
@@ -206,7 +206,7 @@ for task_ID in task_ID_list
             output = CS_BnB(X, Y, alpha * norm(Y)^2, gamma,
                             termination_threshold=epsilon_BnB,
                             subproblem_type="dual", BPD_backbone=true,
-                            use_default_gamma=false)
+                            use_default_gamma=false, round_at_nodes=true)
             trial_end_time = now()
             beta_fitted = output[1]
             num_nodes = output[4]
