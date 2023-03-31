@@ -43,8 +43,7 @@ function solveSubproblemPrimal(A, b, epsilon, gamma;
     end
 
     if round_solution
-        rounded_x, num_support = roundSolution(opt_x, A, b, epsilon,
-                                               norm_function="L2")
+        rounded_x, num_support = roundSolution(opt_x, A, b, epsilon)
 
         return rounded_x, num_support + norm(rounded_x)^2 / gamma,
                opt_x, opt_z, objective_value(model) + size(one_indices)[1]
