@@ -26,14 +26,14 @@ file_path = ARGS[1]
 NUM_TRIALS_PER_CONFIG = 10
 #N = collect(100:100:800)
 N = [200]
-#M = collect(100:100:800)
-M = [100]
+M = collect(100:100:800)
+#M = [100]
 #K = collect(10:5:55)
 K = [10]
 #ratios = collect(10:2:28)
-ratios = [10]
-alphas = collect(0.05:0.05:0.9)
-#alphas = [0.2]
+#ratios = [10]
+#alphas = collect(0.05:0.05:0.9)
+alphas = [0.2]
 
 sigma = 1
 
