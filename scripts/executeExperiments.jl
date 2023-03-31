@@ -286,6 +286,8 @@ for task_ID in task_ID_list
                     rounded_elapsed_time)
         end
 
+        print("Completed trial $trial_num of $NUM_TRIALS total trials.")
+
     end
 
     f = open(output_path * "_" * string(task_ID) * ".json","w")
