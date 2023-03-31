@@ -33,7 +33,7 @@ K = [10]
 #ratios = collect(10:2:28)
 ratios = [10]
 #alphas = collect(0.05:0.05:0.9)
-alphas = [0.2]
+alphas = [0.4]
 
 sigma = 1
 
