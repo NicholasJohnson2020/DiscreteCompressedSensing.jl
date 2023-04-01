@@ -73,7 +73,7 @@ end;
 function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
     round_at_nodes=false, output_to_file=false, output_file_name="temp.txt",
     subproblem_type="primal", subproblem_warmstart=false, BPD_backbone=false,
-    use_default_gamma=false)
+    use_default_gamma=false, cutoff_time=5)
     """
     This function computes a certifiably near-optimal solution to the problem
         min ||U - X - Y||_F^2 + lambda * ||X||_F^2 + mu * ||Y||_F^2
@@ -361,7 +361,7 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
             append!(upper_bound_hist, global_upper_bound)
             append!(lower_bound_hist, global_lower_bound)
 
-            if num_explored_nodes % 10 == 0
+            if num_explored_nodes % 50 == 0
                 current_time = now() - start_time
 
                 if output_to_file
@@ -374,6 +374,9 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
                     println("$num_explored_nodes nodes have been explored.")
                     println("Current elapsed time: $current_time")
                     println("The current lower bound is: $global_lower_bound")
+                end
+                if (current_time / 1000 / 60) > cutoff_time
+                    break
                 end
             end
 
