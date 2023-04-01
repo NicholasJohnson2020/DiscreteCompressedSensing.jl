@@ -375,9 +375,6 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
                     println("Current elapsed time: $current_time")
                     println("The current lower bound is: $global_lower_bound")
                 end
-                if (Dates.value(current_time) / 1000 / 60) > cutoff_time
-                    break
-                end
             end
 
         end
@@ -397,6 +394,13 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
         for current_node in master_node_list
             if current_node.lower_bound < global_lower_bound
                 global_lower_bound = current_node.lower_bound
+            end
+        end
+
+        if num_explored_nodes % 50 == 0
+            current_time = now() - start_time
+            if (Dates.value(current_time) / 1000 / 60) > cutoff_time
+                break
             end
         end
     end
