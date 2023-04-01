@@ -375,7 +375,7 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
                     println("Current elapsed time: $current_time")
                     println("The current lower bound is: $global_lower_bound")
                 end
-                if (current_time / 1000 / 60) > cutoff_time
+                if (Dates.value(current_time) / 1000 / 60) > cutoff_time
                     break
                 end
             end
