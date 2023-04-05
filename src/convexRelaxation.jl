@@ -23,9 +23,10 @@ function SOSRelaxation(A, b, epsilon, lambda; solver_output=false,
     @variable(model, s_1, SOSPoly(basis_small))
     @variable(model, opt_val)
 
-    @constraint(model, obj_func - opt_val == sum(t[i] * (z[i]*x[i]-x[i]) for i=1:n) -
-                sum((z[i]^2-z[i]) for i=1:n) + s_0 +
-                s_1 * (epsilon-(A*x-b)'*(A*x-b)))
+    term_1 = sum(t[i] * (z[i]*x[i]-x[i]) for i=1:n)
+    term_2 = sum((z[i]^2-z[i]) for i=1:n)
+    term_3 = s_1 * (epsilon-(A*x-b)'*(A*x-b))
+    @constraint(model, obj_func - opt_val == term_1 - term_2 + s_0 + term_3)
 
     @objective(model, Max, opt_val)
 
