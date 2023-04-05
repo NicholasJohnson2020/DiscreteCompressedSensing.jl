@@ -10,7 +10,7 @@ function SOSRelaxation(A, b, epsilon, lambda; solver_output=false,
     end
 
     @polyvar x[1:n] z[1:n]
-    obj_func = sum(z[i] + x[i]^2/gamma for i=1:n)
+    obj_func = sum(z[i] + x[i]^2/lambda for i=1:n)
     basis_large = monomials([x; z], 0:relaxation_degree)
     basis_small = monomials([x; z], 0:(relaxation_degree-1))
 
