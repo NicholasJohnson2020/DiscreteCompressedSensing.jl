@@ -51,6 +51,7 @@ end
 NUM_TRIALS = synthetic_data["Trials"]
 
 task_ID_list = collect((task_ID_input+1):num_tasks_input:length(param_dict))
+task_ID_list = [1]
 
 start_time_global = now()
 
