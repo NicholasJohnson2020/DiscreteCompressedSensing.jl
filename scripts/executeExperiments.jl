@@ -125,7 +125,7 @@ for task_ID in task_ID_list
         true_beta = experiment_data[string(trial_num)]["beta"]
 
         rounding_time = nothing
-        gamma = n^2
+        gamma = sqrt(n)
         objective_value = 0
         beta_rounded = zeros(n)
 
