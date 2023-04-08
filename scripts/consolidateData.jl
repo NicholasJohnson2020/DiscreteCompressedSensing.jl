@@ -11,7 +11,7 @@ function computeStats(beta_true, beta_fitted, numerical_threshold=1e-4)
    P = sum(pos_fitted_indices)
    TPR = TP / P
 
-   TN = sum(abs.(beta_fitted[neg_true_indices]) .< numerical threshold)
+   TN = sum(abs.(beta_fitted[neg_true_indices]) .< numerical_threshold)
    N = sum(neg_fitted_indices)
    TNR = TN / N
 
