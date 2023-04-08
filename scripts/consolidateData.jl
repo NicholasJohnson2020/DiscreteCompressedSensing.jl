@@ -1,6 +1,6 @@
 using JSON, LinearAlgebra, Statistics, DataFrames, CSV
 
-function computeStats(beta_true, beta_fitted; numerical_threshold=1e-4)
+function computeStats(beta_true, beta_fitted, numerical_threshold=1e-4)
 
    pos_fitted_indices = abs.(beta_fitted) .> numerical_threshold
    neg_fitted_indices = .~pos_fitted_indices
