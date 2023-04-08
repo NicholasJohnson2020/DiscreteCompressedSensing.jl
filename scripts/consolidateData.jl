@@ -2,16 +2,17 @@ using JSON, LinearAlgebra, Statistics, DataFrames, CSV
 
 function computeStats(beta_true, beta_fitted; numerical_threshold=1e-4)
 
-   pos_indices = abs.(beta_fitted) .> numerical_threshold
-   neg_indices = .~pos_indices
-   true_indices = abs.(beta_true) .> numerical_threshold
+   pos_fitted_indices = abs.(beta_fitted) .> numerical_threshold
+   neg_fitted_indices = .~pos_fitted_indices
+   pos_true_indices = abs.(beta_true) .> numerical_threshold
+   neg_true_indices = .~pos_true_indices
 
-   TP = sum(abs.(beta_fitted[true_indices]) .> numerical_threshold)
-   P = sum(pos_indices)
+   TP = sum(abs.(beta_fitted[pos_true_indices]) .> numerical_threshold)
+   P = sum(pos_fitted_indices)
    TPR = TP / P
 
-   TN = sum(abs.(beta_fitted[.~true_indices]) .< numerical threshold)
-   N = sum(neg_indices)
+   TN = sum(abs.(beta_fitted[neg_true_indices]) .< numerical threshold)
+   N = sum(neg_fitted_indices)
    TNR = TN / N
 
    ACC = (TP + TN) / (P + N)
