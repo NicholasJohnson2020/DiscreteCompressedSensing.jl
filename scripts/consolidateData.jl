@@ -153,7 +153,7 @@ open(INPUT_PATH * "SynExp_data.json", "r") do f
 end
 
 param_dict = Dict()
-open(input_path * "SynExp_params.json", "r") do f
+open(INPUT_PATH * "SynExp_params.json", "r") do f
     global param_dict
     dicttxt = JSON.read(f, String)  # file information to string
     param_dict = JSON.parse(dicttxt)  # parse and transform data
