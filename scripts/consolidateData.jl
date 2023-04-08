@@ -1,5 +1,24 @@
 using JSON, LinearAlgebra, Statistics, DataFrames, CSV
 
+function computeStats(beta_true, beta_fitted; numerical_threshold=1e-4)
+
+   discovered_indices = abs.(beta_fitted) .> numerical_threshold
+   true_indices = abs.(beta_true) .> numerical_threshold
+
+   TP = sum(abs.(beta_fitted[true_indices]) .> numerical_threshold)
+   P = sum(discovered_indices)
+   TPR = TP / P
+
+   TN = sum(abs.(beta_fitted[.~true_indices]) .< numerical threshold)
+   N = sum(.~discovered_indices)
+   TNR = TN / N
+
+   ACC = (TP + TN) / (P + N)
+
+   return TPR, TNR, ACC
+
+end;
+
 function processData(input_path, method_name, prefix="")
 
    df = DataFrame(N=Int64[], M=Int64[], K=Int64[], signal_to_noise=Float64[],
@@ -9,7 +28,9 @@ function processData(input_path, method_name, prefix="")
                   fitted_k_std=Float64[], true_disc=Float64[],
                   true_disc_std=Float64[], false_disc=Float64[],
                   false_disc_std=Float64[], exec_time=Float64[],
-                  exec_time_std=Float64[], lower_bound=Float64[],
+                  exec_time_std=Float64[], TPR=Float64[], TPR_std=Float64[],
+                  TNR=Float64[], TNR_std=Float64[], ACC=Float64[],
+                  ACC_std=Float64[], lower_bound=Float64[],
                   lower_bound_std=Float64[], root_node_gap=Float64[],
                   root_node_gap_std=Float64[], num_nodes=Float64[],
                   num_nodes_std=Float64[], terminal_nodes=Float64[],
@@ -39,6 +60,14 @@ function processData(input_path, method_name, prefix="")
          exp_data = JSON.parse(exp_data)
       end
 
+      task_ID = file_name[end-6:end-5]
+      if task_ID[1] == '_'
+          task_ID = task_ID[2:end]
+      end;
+
+      key = Dict{String, Real}(param_dict[task_ID])
+      experiment_data = synthetic_data[string(key)]
+
       num_samples = length(exp_data["execution_time"])
       if num_samples == 0
          continue
@@ -61,6 +90,27 @@ function processData(input_path, method_name, prefix="")
                      Statistics.std(exp_data[prefix * "false_discovery"]) / (num_samples^0.5),
                      Statistics.mean(exp_data[prefix * "execution_time"][2:end]),
                      Statistics.std(exp_data[prefix * "execution_time"][2:end]) / (num_samples^0.5)]
+
+      TPR_vec = zeros(num_samples)
+      TNR_vec = zeros(num_samples)
+      ACC_vec = zeros(num_samples)
+      for trial_num=1:num_samples
+         beta_fitted = exp_data[prefix * "solution"][trial_num]
+         beta_true = experiment_data[string(trial_num)]["beta"]
+         TPR, TNR, ACC = computeStats(beta_true, beta_fitted)
+         TPR_vec[trial_num] = TPR
+         TNR_vec[trial_num] = TNR
+         ACC_vec[trial_num] = ACC
+      end
+
+      temp_row = [Statistics.mean(TPR_vec),
+                  Statistics.std(TPR_vec) / (num_samples^0.5),
+                  Statistics.mean(TNR_vec),
+                  Statistics.std(TNR_vec) / (num_samples^0.5),
+                  Statistics.mean(ACC_vec),
+                  Statistics.std(ACC_vec) / (num_samples^0.5)]
+
+      current_row = vcat(current_row, temp_row)
 
       if method_name in ["SOC_Relax", "SOC_Relax_Rounded", "SOS"]
          append!(current_row, Statistics.mean(exp_data["lower_bound"]))
@@ -91,6 +141,22 @@ METHOD_NAME = ARGS[1]
 INPUT_PATH = ARGS[2]
 
 OUTPUT_ROOT = INPUT_PATH * METHOD_NAME * "/" * METHOD_NAME
+
+synthetic_data = Dict()
+open(INPUT_PATH * "SynExp_data.json", "r") do f
+    global synthetic_data
+    dicttxt = JSON.read(f, String)  # file information to string
+    synthetic_data = JSON.parse(dicttxt)  # parse and transform data
+    synthetic_data = JSON.parse(synthetic_data)
+end
+
+param_dict = Dict()
+open(input_path * "SynExp_params.json", "r") do f
+    global param_dict
+    dicttxt = JSON.read(f, String)  # file information to string
+    param_dict = JSON.parse(dicttxt)  # parse and transform data
+    param_dict = JSON.parse(param_dict)
+end
 
 df1 = processData(INPUT_PATH, METHOD_NAME, "")
 
