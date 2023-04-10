@@ -5,6 +5,7 @@ input_path = ARGS[2]
 output_path = input_path * method_name * "/"
 task_ID_input = parse(Int64, ARGS[3])
 num_tasks_input = parse(Int64, ARGS[4])
+epsilon_BnB = 0.1
 
 #valid_methods = ["OMP",
 #                 "BPD_Gurobi_Rounding",
