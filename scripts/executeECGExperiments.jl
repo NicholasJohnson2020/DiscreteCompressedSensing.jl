@@ -194,7 +194,7 @@ for TASK_ID in task_ID_list
             trial_end_time = now()
         elseif method_name == "BnB_Primal"
             trial_start = now()
-            output = CS_BnB(A, b_observed, epsilon, gamma,
+            output = CS_BnB(A, vec(b_observed), epsilon, gamma,
                             termination_threshold=epsilon_BnB,
                             subproblem_type="primal", BPD_backbone=true,
                             use_default_gamma=false, round_at_nodes=true,
@@ -204,7 +204,7 @@ for TASK_ID in task_ID_list
             trial_end_time = now()
         elseif method_name == "BnB_Dual"
             trial_start = now()
-            output = CS_BnB(A, b_observed, error, gamma,
+            output = CS_BnB(A, vec(b_observed), error, gamma,
                             termination_threshold=epsilon_BnB,
                             subproblem_type="dual", BPD_backbone=true,
                             use_default_gamma=false, round_at_nodes=true,
