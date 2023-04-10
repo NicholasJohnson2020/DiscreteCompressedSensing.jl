@@ -2,9 +2,9 @@ include("../discreteCompressedSensing.jl")
 
 method_name = ARGS[1]
 input_path = ARGS[2]
-output_path = ARGS[3] * method_name * "/"
-task_ID_input = parse(Int64, ARGS[4])
-num_tasks_input = parse(Int64, ARGS[5])
+output_path = input_path * method_name * "/"
+task_ID_input = parse(Int64, ARGS[3])
+num_tasks_input = parse(Int64, ARGS[4])
 
 #valid_methods = ["OMP",
 #                 "BPD_Gurobi_Rounding",
