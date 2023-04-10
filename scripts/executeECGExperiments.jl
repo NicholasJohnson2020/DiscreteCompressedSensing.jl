@@ -70,6 +70,7 @@ for TASK_ID in task_ID_list
     gamma_mult = param_dict[string(TASK_ID)]["GAMMA_MULT"]
     gamma_flag = param_dict[string(TASK_ID)]["GAMMA_FLAG"]
 
+    global sensing_mat
     sensing_mat = sensing_mat[1:M, :]
     A = sensing_mat * atom_dict
 
