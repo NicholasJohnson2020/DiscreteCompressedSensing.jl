@@ -104,7 +104,7 @@ for TASK_ID in task_ID_list
             patient_results["rounded_execution_time"] = []
         end
 
-        if method_name in ["BnB_Primal", 'BnB_Dual']
+        if method_name in ["BnB_Primal", "BnB_Dual"]
 
             patient_results["num_nodes"] = []
 
