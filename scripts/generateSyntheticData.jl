@@ -30,10 +30,10 @@ N = [200]
 M = [100]
 #K = collect(10:5:55)
 K = [10]
-ratios = collect(10:2:28)
-#ratios = [10]
-#alphas = collect(0.05:0.05:0.9)
-alphas = [0.2]
+#ratios = collect(10:2:28)
+ratios = [10]
+alphas = collect(0.05:0.05:0.9)
+#alphas = [0.2]
 
 sigma = 1
 
