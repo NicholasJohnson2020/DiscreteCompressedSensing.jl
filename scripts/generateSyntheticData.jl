@@ -25,9 +25,9 @@ file_path = ARGS[1]
 
 NUM_TRIALS_PER_CONFIG = 100
 #N = collect(100:100:800)
-N = [25]
+N = [50]
 #M = collect(100:100:800)
-M = [100]
+M = [25]
 #K = collect(10:5:55)
 K = [10]
 #ratios = collect(10:2:28)
