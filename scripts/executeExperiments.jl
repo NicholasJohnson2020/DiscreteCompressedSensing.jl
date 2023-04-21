@@ -185,7 +185,7 @@ for task_ID in task_ID_list
                             termination_threshold=epsilon_BnB,
                             subproblem_type="primal", BPD_backbone=true,
                             use_default_gamma=false, round_at_nodes=true,
-                            cutoff_time=5)
+                            cutoff_time=10)
             trial_end_time = now()
             beta_fitted = output[1]
             num_nodes = output[4]
@@ -208,7 +208,7 @@ for task_ID in task_ID_list
                             termination_threshold=epsilon_BnB,
                             subproblem_type="dual", BPD_backbone=true,
                             use_default_gamma=false, round_at_nodes=true,
-                            cutoff_time=5)
+                            cutoff_time=10)
             trial_end_time = now()
             beta_fitted = output[1]
             num_nodes = output[4]
