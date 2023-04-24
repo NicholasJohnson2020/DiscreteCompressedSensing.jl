@@ -1,6 +1,6 @@
 include("../discreteCompressedSensing.jl")
 
-method_name = ARGS[1]
+method_name = string(ARGS[1])
 input_path = ARGS[2]
 output_path = input_path * method_name * "/"
 task_ID_input = parse(Int64, ARGS[3])
@@ -63,7 +63,7 @@ atom_dict, _ = ksvd(
 
 task_ID_list = collect((task_ID_input+1):num_tasks_input:length(param_dict))
 if method_name in ["OMP", "IRWL1_Rounded", "BPD_Rounded"]
-    task_ID_list = [1]
+    task_ID_list = collect(1:1:1)
 end
 
 for TASK_ID in task_ID_list
