@@ -61,7 +61,10 @@ atom_dict, _ = ksvd(
     sparsity_allowance = 0.96
 );
 
-task_ID_list = collect((task_ID_input+1):num_tasks_input:length(param_dict))
+list_end_index = length(param_dict)
+if method_name in ["OMP", "IRWL1_Rounded", "BPD_Rounded"]
+    list_end_index = 1
+task_ID_list = collect((task_ID_input+1):num_tasks_input:list_end_index)
 
 for TASK_ID in task_ID_list
 
