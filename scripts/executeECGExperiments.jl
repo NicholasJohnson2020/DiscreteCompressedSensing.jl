@@ -171,7 +171,7 @@ for TASK_ID in task_ID_list
                                                       round_solution=false)
             trial_end_time = now()
             rounding_start = now()
-            beta_rounded, _ = roundSolution(beta_fitted, X, Y, epsilon)
+            beta_rounded, _ = roundSolution(beta_fitted, A, b_observed, epsilon)
             rounding_time = now() - rounding_start
         elseif method_name == "SOC_Relax_Rounded"
             trial_start = now()
