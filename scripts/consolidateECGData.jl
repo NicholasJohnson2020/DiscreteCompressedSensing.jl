@@ -78,15 +78,10 @@ function processData(input_path, prefix; BnB=false)
 end;
 
 METHOD_NAME = ARGS[1]
-INPUT_PATH = ARGS[2]
+INPUT_PATH = ARGS[2] * METHOD_NAME * "/"
 numerical_threshold = 1e-4
 
-if METHOD_NAME in ["BnB_Primal",
-                   "BnB_Primal_Backbone",
-                   "BnB_Primal_Backbone_Rounding",
-                   "BnB_Dual",
-                   "BnB_Dual_Backbone",
-                   "BnB_Dual_Backbone_Rounding"]
+if METHOD_NAME in ["BnB_Primal"]
    df1 = processData(INPUT_PATH, "", BnB = true)
 else
    df1 = processData(INPUT_PATH, "")
