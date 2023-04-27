@@ -280,7 +280,7 @@ for TASK_ID in task_ID_list
         append!(experiment_results[patientID]["L0_norm"], L0_norm)
         append!(experiment_results[patientID]["execution_time"], elapsed_time)
 
-        if method_name in ["BPD_Gurobi_Rounded", "IRWL1_Rounded", "SOC_Relax_Rounded"]
+        if method_name in ["BPD_Rounded", "IRWL1_Rounded", "SOC_Relax_Rounded"]
 
             reconstruction = atom_dict * beta_rounded
             L2_error = norm(ecg_signal-reconstruction)^2 / norm(ecg_signal)^2
