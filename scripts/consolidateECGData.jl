@@ -92,13 +92,13 @@ else
    df1 = processData(INPUT_PATH, "")
 end
 
-if METHOD_NAME in ["BPD_Gurobi_Rounding", "IRWL1_Rounding"]
+if METHOD_NAME in ["BPD_Gurobi_Rounded", "IRWL1_Rounded"]
    OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "_rounded_aggrData.csv"
    df2 = processData(INPUT_PATH, "rounded_")
    CSV.write(INPUT_PATH * METHOD_NAME * "_rounded_aggrData.csv", df2)
 end
 
-if METHOD_NAME == "SOC_Relax_Rounding"
+if METHOD_NAME == "SOC_Relax_Rounded"
    OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "_rounded_x_aggrData.csv"
    df2 = processData(INPUT_PATH, "rounded_x_")
    OUTPUT_PATH = INPUT_PATH * METHOD_NAME * "_rounded_z_aggrData.csv"
