@@ -34,8 +34,6 @@ function basisPursuitDenoising(A, b, epsilon; weights=nothing,
     @constraint(model, abs_residual .>= -A * x .+ b)
     @constraint(model, [i in zero_indices], x[i] == 0)
 
-    println(epsilon)
-    println(m)
     @constraint(model, sum(abs_residual[i]^2 for i=1:m) <= epsilon)
 
     @objective(model, Min, sum(weights[i] * abs_x[i] for i in active_indices))

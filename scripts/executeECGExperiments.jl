@@ -159,28 +159,28 @@ for TASK_ID in task_ID_list
             trial_end_time = now()
         elseif method_name == "BPD_Rounded"
             trial_start = now()
-            _, beta_fitted = basisPursuitDenoising(A, b_observed, error,
+            _, beta_fitted = basisPursuitDenoising(A, b_observed, epsilon,
                                                    round_solution=false)
             trial_end_time = now()
             rounding_start = now()
-            beta_rounded, _ = roundSolution(beta_fitted, A, b_observed, error)
+            beta_rounded, _ = roundSolution(beta_fitted, A, b_observed, epsilon)
             rounding_time = now() - rounding_start
         elseif method_name == "IRWL1_Rounded"
             trial_start = now()
-            _, beta_fitted, _ = iterativeReweightedL1(A, b_observed, error,
+            _, beta_fitted, _ = iterativeReweightedL1(A, b_observed, epsilon,
                                                       round_solution=false)
             trial_end_time = now()
             rounding_start = now()
-            beta_rounded, _ = roundSolution(beta_fitted, X, Y, alpha * norm(Y)^2)
+            beta_rounded, _ = roundSolution(beta_fitted, X, Y, epsilon)
             rounding_time = now() - rounding_start
         elseif method_name == "SOC_Relax_Rounded"
             trial_start = now()
             beta_fitted, opt_z, objective_value = perspectiveRelaxation(A,
-                                                    b_observed, error,
+                                                    b_observed, epsilon,
                                                     gamma, round_solution=false)
             trial_end_time = now()
             rounding_start = now()
-            beta_rounded, _ = roundSolution(opt_z, X, Y, alpha * norm(Y)^2)
+            beta_rounded, _ = roundSolution(opt_z, X, Y, epsilon)
             rounding_time = now() - rounding_start
         elseif method_name == "MISOC"
             trial_start = now()
@@ -207,7 +207,7 @@ for TASK_ID in task_ID_list
             trial_end_time = now()
         elseif method_name == "BnB_Dual"
             trial_start = now()
-            output = CS_BnB(A, vec(b_observed), error, gamma,
+            output = CS_BnB(A, vec(b_observed), epsilon, gamma,
                             termination_threshold=epsilon_BnB,
                             subproblem_type="dual", BPD_backbone=true,
                             use_default_gamma=false, round_at_nodes=true,
