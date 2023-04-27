@@ -1,5 +1,3 @@
-using Pkg
-Pkg.activate("/home/nagj/.julia/environments/sparse_discrete")
 using JSON, LinearAlgebra, Statistics, DataFrames, CSV
 
 function processData(input_path, prefix; BnB=false)
