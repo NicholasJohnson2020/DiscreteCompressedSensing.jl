@@ -63,7 +63,7 @@ atom_dict, _ = ksvd(
 
 task_ID_list = collect((task_ID_input+1):num_tasks_input:length(param_dict))
 if method_name in ["OMP", "IRWL1_Rounded", "BPD_Rounded"]
-    task_ID_list = collect(1:1:1)
+    task_ID_list = [176, 306, 589]
 end
 
 for TASK_ID in task_ID_list
