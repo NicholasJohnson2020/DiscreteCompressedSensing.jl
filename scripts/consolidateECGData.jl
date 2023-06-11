@@ -1,7 +1,10 @@
 using JSON, LinearAlgebra, Statistics, DataFrames, CSV
 
 function processData(input_path, prefix; BnB=false)
-
+   """
+   This function loads raw experiment output data and processes it into a
+   dataframe.
+   """
    df = DataFrame(epsilon_multiple=Float64[], M=Int64[], CR=Float64[],
                   gamma_mult=Float64[], gamma_flag=String[],
                   L2_error=Float64[], L2_error_std=Float64[],
@@ -15,6 +18,7 @@ function processData(input_path, prefix; BnB=false)
    num_nodes_mean = []
    num_nodes_std = []
 
+   # Iterate over all files in the input directory
    for file_name in file_paths
 
       exp_data = Dict()
@@ -45,6 +49,7 @@ function processData(input_path, prefix; BnB=false)
 
       end
 
+      # Extract and store the relevant data
       current_row = [exp_data["EPSILON"],
                      exp_data["M"],
                      exp_data["CR"],
@@ -81,6 +86,7 @@ METHOD_NAME = ARGS[1]
 INPUT_PATH = ARGS[2] * METHOD_NAME * "/"
 numerical_threshold = 1e-4
 
+# Process and save the data
 if METHOD_NAME in ["BnB_Primal"]
    df1 = processData(INPUT_PATH, "", BnB = true)
 else

@@ -17,13 +17,12 @@ config_count = 0
 
 param_dict = Dict()
 
-#for num in NUM_CR, eps in EPSILON_MULTIPLE
+# Main loop to generate parameters
 for gamma_flag in GAMMA_FLAG
     for gamma_mult in GAMMA_MULT
         for M in M_vals, eps in EPSILON_MULTIPLE
 
             global config_count += 1
-            #M = Int64(floor((1-num*5*0.01)*N))
             CR = 1 - M/N
             param_dict[config_count] = Dict("M"=>M,
                                             "CR"=>CR,
@@ -35,6 +34,7 @@ for gamma_flag in GAMMA_FLAG
     end
 end
 
+# Save parameters to file
 f = open(file_path * "params.json","w")
 JSON.print(f, JSON.json(param_dict))
 close(f)

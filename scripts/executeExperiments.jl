@@ -3,6 +3,14 @@ include("../discreteCompressedSensing.jl")
 using JSON, Dates
 
 function unserialize_matrix(mat)
+    """
+    This function unserializes an array of arrays into a 2-dimensional matrix.
+
+    :param mat: An array of arrays
+
+    :return: This function returns the matrix version of the input array of
+             arrays.
+    """
     n = size(mat[1])[1]
     p = size(mat)[1]
     output = zeros(n, p)
@@ -21,17 +29,13 @@ task_ID_input = parse(Int64, ARGS[4])
 num_tasks_input = parse(Int64, ARGS[5])
 epsilon_BnB = 0.1
 
-#old_valid_methods = ["BPD", "BPD_Rounded", "Exact_Naive", "Exact_Binary",
-#                 "Exact_Naive_Warm", "Exact_Binary_Warm", "MISOC", "SOC_Relax",
-#                 "SOC_Relax_Rounded", "Heuristic", "Cutting_Planes",
-#                 "Cutting_Planes_Warm"]
-
 valid_methods = ["BPD", "BPD_Rounded", "IRWL1", "IRWL1_Rounded", "OMP",
                  "MISOC", "SOC_Relax", "SOC_Relax_Rounded", "BnB_Primal",
                  "BnB_Dual", "SOS"]
 
 @assert method_name in valid_methods
 
+# Load the syntehtic data
 synthetic_data = Dict()
 open(input_path * "data.json", "r") do f
     global synthetic_data
@@ -40,6 +44,7 @@ open(input_path * "data.json", "r") do f
     synthetic_data = JSON.parse(synthetic_data)
 end
 
+# Load the experiment parameters
 param_dict = Dict()
 open(input_path * "params.json", "r") do f
     global param_dict
@@ -54,11 +59,13 @@ task_ID_list = collect((task_ID_input+1):num_tasks_input:length(param_dict))
 
 start_time_global = now()
 
+# Main loop to execute experiments
 for task_ID in task_ID_list
 
     global synthetic_data
     global param_dict
 
+    # Load experiment specific data
     n = param_dict[string(task_ID)]["N"]
     m = param_dict[string(task_ID)]["M"]
     k = param_dict[string(task_ID)]["K"]
@@ -72,6 +79,7 @@ for task_ID in task_ID_list
     synthetic_data = nothing
     GC.gc()
 
+    # Create dictionary to store experiment results
     experiment_results = Dict()
     experiment_results["Method"] = method_name
     experiment_results["N"] = n
@@ -114,6 +122,7 @@ for task_ID in task_ID_list
 
     start_time = now()
 
+    # Loop to execute specified experiment for each trial
     for trial_num=1:NUM_TRIALS
 
         println("Starting trial " * string(trial_num) * " of " * string(NUM_TRIALS))
@@ -129,6 +138,7 @@ for task_ID in task_ID_list
         objective_value = 0
         beta_rounded = zeros(n)
 
+        # Switch to execute the specified method
         if method_name == "BPD"
             trial_start = now()
             _, beta_fitted = basisPursuitDenoising(X, Y, alpha * norm(Y)^2,
@@ -235,6 +245,7 @@ for task_ID in task_ID_list
             beta_fitted = zeros(n)
         end
 
+        # Compute the performance measures of the returned solution
         residual_error = norm(X * beta_fitted - Y)^2
         beta_error = norm(true_beta - beta_fitted)^2 / norm(true_beta)^2
         fitted_k = sum(abs.(beta_fitted) .> numerical_threshold)
@@ -248,6 +259,7 @@ for task_ID in task_ID_list
         end
         elapsed_time = Dates.value(trial_end_time - trial_start)
 
+        # Store the performance measures of the returned solution
         append!(experiment_results["solution"], [beta_fitted])
         append!(experiment_results["residual_error"], residual_error)
         append!(experiment_results["beta_error"], beta_error)
@@ -260,6 +272,7 @@ for task_ID in task_ID_list
             append!(experiment_results["lower_bound"], objective_value)
         end
 
+        # Compute and store performance measures of rounded solutions
         if method_name in ["BPD_Rounded", "IRWL1_Rounded", "SOC_Relax_Rounded"]
             rounded_residual_error = norm(X * beta_rounded - Y)^2
             rounded_beta_error = norm(true_beta - beta_rounded)^2 / norm(true_beta)^2
@@ -292,6 +305,7 @@ for task_ID in task_ID_list
 
     end
 
+    # Save the results to file
     f = open(output_path * "_" * string(task_ID) * ".json","w")
     JSON.print(f, JSON.json(experiment_results))
     close(f)

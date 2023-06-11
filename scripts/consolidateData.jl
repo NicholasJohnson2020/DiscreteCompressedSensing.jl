@@ -1,7 +1,20 @@
 using JSON, LinearAlgebra, Statistics, DataFrames, CSV
 
 function computeStats(beta_true, beta_fitted, numerical_threshold=1e-4)
+   """
+   This function computes performance metrics for the vector beta_fitted
+   relative to the vector beta_true when viewed as a classification problem
+   to select nonzero entries.
 
+   :param beta_true: The ground truth.
+   :param beta_fitted: An estimate of beta_true.
+   :param numerical_threshold: The threshold above which an entry in beta_fitted
+                               is considered to be nonzero.
+
+   :return: This function returns three values. The first is the true positive
+            rate of beta_fitted, the second is the true negative rate of
+            beta_fitted, the third is the accuracy of beta_fitted.
+   """
    pos_fitted_indices = abs.(beta_fitted) .> numerical_threshold
    neg_fitted_indices = .~pos_fitted_indices
    pos_true_indices = abs.(beta_true) .> numerical_threshold
@@ -22,7 +35,10 @@ function computeStats(beta_true, beta_fitted, numerical_threshold=1e-4)
 end;
 
 function processData(input_path, method_name, prefix="")
-
+   """
+   This function loads raw experiment output data and processes it into a
+   dataframe.
+   """
    df = DataFrame(N=Int64[], M=Int64[], K=Int64[], signal_to_noise=Float64[],
                   alpha=Float64[], residual_error=Float64[],
                   residual_error_std=Float64[], beta_error=Float64[],
@@ -53,6 +69,7 @@ function processData(input_path, method_name, prefix="")
    root_path = input_path * method_name * "/"
 
    file_paths = readdir(root_path, join=true)
+   # Iterate over all files in the input directory
    for file_name in file_paths
 
       exp_data = Dict()
@@ -75,6 +92,7 @@ function processData(input_path, method_name, prefix="")
          continue
       end
 
+      # Extract and store the relevant data
       current_row = [exp_data["N"],
                      exp_data["M"],
                      exp_data["K"],
@@ -144,6 +162,7 @@ INPUT_PATH = ARGS[2]
 
 OUTPUT_ROOT = INPUT_PATH * METHOD_NAME * "/" * METHOD_NAME
 
+# Load the synthetic data
 synthetic_data = Dict()
 open(INPUT_PATH * "SynExp_data.json", "r") do f
     global synthetic_data
@@ -152,6 +171,7 @@ open(INPUT_PATH * "SynExp_data.json", "r") do f
     synthetic_data = JSON.parse(synthetic_data)
 end
 
+# Load the experiment parameters
 param_dict = Dict()
 open(INPUT_PATH * "SynExp_params.json", "r") do f
     global param_dict
@@ -160,6 +180,7 @@ open(INPUT_PATH * "SynExp_params.json", "r") do f
     param_dict = JSON.parse(param_dict)
 end
 
+# Process and save the data
 df1 = processData(INPUT_PATH, METHOD_NAME, "")
 
 if METHOD_NAME in ["BPD_Rounded", "IRWL1_Rounded", "SOC_Relax_Rounded"]

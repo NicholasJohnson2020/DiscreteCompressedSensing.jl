@@ -1,6 +1,21 @@
 using JSON, Random, Distributions
 
 function sample_data(m, n, k, sigma, signal_to_noise_ratio)
+    """
+    This function generates synthetic data according to the data generation
+    process defined in Section 6.1.1 of the accompanying paper.
+
+    :param m: The number of observations (Int64).
+    :param n: The number of features (Int64).
+    :param k: The true sparsity level (Int64).
+    :param sigma: The scale of the data (Float64).
+    :param signal_to_noise_ratio: The signal to noise ratio (Float64).
+
+    :return: This function returns four values. The first value is the sampled
+             m-by-n matrix X, the second is the sampled m vector Y, the third
+             is the input specified sparsity level and the fourth is the sampled
+             coefficient vector beta.
+    """
 
     data_dist = Normal(0, signal_to_noise_ratio * sigma / n^0.5)
     X = rand(data_dist, (m, n))
@@ -50,6 +65,7 @@ data_dict["signal_to_noise"] = ratios
 data_dict["alpha"] = alphas
 data_dict["sigma"] = sigma
 
+# Main loop to sample data
 for n in N, m in M, k in K, signal_to_noise in ratios, alpha in alphas
 
     global config_count += 1
@@ -68,6 +84,7 @@ for n in N, m in M, k in K, signal_to_noise in ratios, alpha in alphas
 
 end
 
+# Store the data to file
 f = open(file_path * "data.json","w")
 JSON.print(f, JSON.json(data_dict))
 close(f)

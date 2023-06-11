@@ -7,25 +7,13 @@ task_ID_input = parse(Int64, ARGS[3])
 num_tasks_input = parse(Int64, ARGS[4])
 epsilon_BnB = 0.1
 
-#valid_methods = ["OMP",
-#                 "BPD_Gurobi_Rounding",
-#                 "IRWL1_Rounding",
-#                 "SOC_Relax_Rounding",
-#                 "MISOC",
-#                 "MISOC_Backbone",
-#                 "BnB_Primal",
-#                 "BnB_Primal_Backbone",
-#                 "BnB_Primal_Backbone_Rounding",
-#                 "BnB_Dual",
-#                 "BnB_Dual_Backbone",
-#                 "BnB_Dual_Backbone_Rounding"]
-
 valid_methods = ["BPD", "BPD_Rounded", "IRWL1", "IRWL1_Rounded", "OMP",
                  "MISOC", "SOC_Relax", "SOC_Relax_Rounded", "BnB_Primal",
                  "BnB_Dual"]
 
 @assert method_name in valid_methods
 
+# Load the experiment parameters
 param_dict = Dict()
 open(input_path * "params.json", "r") do f
     global param_dict
@@ -39,8 +27,8 @@ train_size = 30
 num_atoms = 2000
 
 patient_indices = collect((train_size + 1):100)
-#patient_indices = collect((train_size + 1):50)
 
+# Load the experiment data
 sensing_mat_path = input_path * "Copmare_ECG_CS/BernoulliSample.mat"
 sensing_mat = matread(sensing_mat_path)["BernoulliSample"][:, :]
 dim = size(sensing_mat)[2]
@@ -53,6 +41,7 @@ for index=1:train_size
     train_data[:, index] = ecg_signal
 end
 
+# Fit the overcomplete dictionary
 atom_dict, _ = ksvd(
     train_data,
     num_atoms,  # the number of atoms in D
@@ -66,8 +55,10 @@ if method_name in ["OMP", "IRWL1_Rounded", "BPD_Rounded"]
     task_ID_list = [176, 589, 306]
 end
 
+# Main loop to execute experiments
 for TASK_ID in task_ID_list
 
+    # Load experiment specific parameters
     M = param_dict[string(TASK_ID)]["M"]
     CR = param_dict[string(TASK_ID)]["CR"]
     EPSILON_MULTIPLE = param_dict[string(TASK_ID)]["EPSILON"]
@@ -78,6 +69,7 @@ for TASK_ID in task_ID_list
     sensing_mat = sensing_mat[1:M, :]
     A = sensing_mat * atom_dict
 
+    # Create dictionary to store experiment results
     experiment_results = Dict()
     experiment_results["Method"] = method_name
     experiment_results["N"] = dim
@@ -120,6 +112,7 @@ for TASK_ID in task_ID_list
 
     start_time = now()
 
+    # Loop to execute specified experiment for each patient
     for patientID in patient_indices
 
         println("Starting Patient " * string(patientID))
@@ -132,8 +125,6 @@ for TASK_ID in task_ID_list
             ecg_signal = matread(ecg_path)[ecg_label]
         end
 
-        #b_observed = sensing_mat * ecg_signal
-        #epsilon = EPSILON_MULTIPLE * norm(b_observed)^2
         perturbed = ecg_signal + rand(Normal(0, mean(abs.(ecg_signal)) / 4),
                                       size(ecg_signal)[1])
         b_observed = sensing_mat * perturbed
@@ -153,6 +144,8 @@ for TASK_ID in task_ID_list
         beta_rounded = zeros(n)
         num_cuts = 0
         num_nodes = 0
+
+        # Switch to execute the specified method
         if method_name == "OMP"
             trial_start = now()
             beta_fitted, _ = OMP(A, b_observed, epsilon)
@@ -266,12 +259,14 @@ for TASK_ID in task_ID_list
             trial_end_time = now()
         end
 
+        # Compute the performance measures of the returned solution
         reconstruction = atom_dict * beta_fitted
         L2_error = norm(ecg_signal-reconstruction)^2 / norm(ecg_signal)^2
         L1_error = norm(ecg_signal-reconstruction, 1) / norm(ecg_signal, 1)
         L0_norm = sum(abs.(beta_fitted) .> numerical_threshold)
         elapsed_time = Dates.value(trial_end_time - trial_start)
 
+        # Store the performance measures of the returned solution
         append!(experiment_results[patientID]["b_full"], [ecg_signal])
         append!(experiment_results[patientID]["b_observed"], [b_observed])
         append!(experiment_results[patientID]["solution"], [beta_fitted])
@@ -280,6 +275,7 @@ for TASK_ID in task_ID_list
         append!(experiment_results[patientID]["L0_norm"], L0_norm)
         append!(experiment_results[patientID]["execution_time"], elapsed_time)
 
+        # Compute and store performance measures of rounded solutions
         if method_name in ["BPD_Rounded", "IRWL1_Rounded", "SOC_Relax_Rounded"]
 
             reconstruction = atom_dict * beta_rounded
@@ -303,6 +299,7 @@ for TASK_ID in task_ID_list
 
     end
 
+    # Save the results to file
     f = open(output_path * "_" * string(TASK_ID) * ".json","w")
     JSON.print(f, JSON.json(experiment_results))
     close(f)
