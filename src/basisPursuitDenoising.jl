@@ -1,10 +1,32 @@
 include("helperLibrary.jl")
 
 function basisPursuitDenoising(A, b, epsilon; weights=nothing,
-    solver_output=0, solver="Gurobi", round_solution=true, max_weight=1e6)
+    solver_output=0, round_solution=true, max_weight=1e6)
+    """
+    This function computes the solution to problem (5) and (7) of the
+    accompanying paper.
 
-    @assert solver in ["Gurobi", "SCS"]
+    :param A: A m-by-n design matrix.
+    :param b: An m dimensional vector of observations.
+    :param epsilon: A numerical threshold parameter (Float64).
+    :param weights: A n dimensional vector of weights.
+    :param solver_output: The "OutputFlag" parameter to be passed to
+                          Gurobi (Int64).
+    :param round_solution: Flag that controls whether or not to perform a greedy
+                           rounding of the solution of (5) to further sparsify.
+    :param max_weight: Maximum allowable weight (Float64).
 
+    :return: If round_solution is true, this function returns five values:
+             1) The cardinality of the rounded solution (Int64).
+             2) The rounded solution.
+             3) The cardinality of the solution to (5) (Int64).
+             4) The x vector solution to (5).
+             5) The amount of time in milliseconds to perform the rounding.
+
+             If round_solution is false, this function returns two values:
+             1) The cardinality of the solution to (5) (Int64).
+             2) The x vector solution to (5).
+    """
     (m, n) = size(A)
 
     if weights == nothing
@@ -16,13 +38,9 @@ function basisPursuitDenoising(A, b, epsilon; weights=nothing,
     active_indices = findall(<=(max_weight), weights)
     zero_indices = findall(>(max_weight), weights)
 
-    if solver == "Gurobi"
-        model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
-        set_optimizer_attribute(model, "OutputFlag", solver_output)
-    else
-        model = Model(SCS.Optimizer)
-        set_optimizer_attribute(model, "verbose", solver_output)
-    end
+    # Build the optimization problem
+    model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
+    set_optimizer_attribute(model, "OutputFlag", solver_output)
 
     @variable(model, x[i=1:n])
     @variable(model, abs_x[i=1:n]>=0)
@@ -46,6 +64,7 @@ function basisPursuitDenoising(A, b, epsilon; weights=nothing,
 
     opt_x = value.(x)
 
+    # Perform greedy rounding if necessary
     if round_solution
         rounding_start = now()
         rounded_x, num_support = roundSolution(opt_x, A, b, epsilon)
@@ -58,19 +77,47 @@ function basisPursuitDenoising(A, b, epsilon; weights=nothing,
 
 end;
 
-function iterativeReweightedL1(A, b, epsilon; solver_output=0, solver="Gurobi",
+function iterativeReweightedL1(A, b, epsilon; solver_output=0,
     round_solution=true, max_iter=50, numerical_stability_param=1e-6)
+    """
+    This function performs iterated reweighted L1 minimization for problem (7)
+    defined in Section 2.2 of the accompanying paper.
 
+    :param A: A m-by-n design matrix.
+    :param b: An m dimensional vector of observations.
+    :param epsilon: A numerical threshold parameter (Float64).
+    :param solver_output: The "OutputFlag" parameter to be passed to
+                          Gurobi (Int64).
+    :param round_solution: Flag that controls whether or not to perform a greedy
+                           rounding of the solution of (7) to further sparsify.
+    :param max_iter: Maximum allowable reweighting iterations (Int64).
+    :param numerical_stability_param: Stability paramter for the iterated
+                                      reweighted L1 algorithm (Float64).
+
+    :return: If round_solution is true, this function returns six values:
+             1) The cardinality of the rounded solution (Int64).
+             2) The rounded solution.
+             3) The cardinality of the solution to (7) (Int64).
+             4) The x vector solution to (7).
+             5) The amount of time in milliseconds to perform the rounding.
+             6) The number of reweighting iterations (Int64).
+
+             If round_solution is false, this function returns three values:
+             1) The cardinality of the solution to (7) (Int64).
+             2) The x vector solution to (7).
+             3) The number of reweighting iterations (Int64).
+    """
+    # Solve (7) with uniform weights to initiliaze
     current_card, current_x = basisPursuitDenoising(A, b, epsilon,
                                                     solver_output=solver_output,
-                                                    solver=solver,
                                                     round_solution=false)
     iter_count = 0
+    # Main loop
     while iter_count < max_iter
         new_weights = 1 ./ abs.(current_x) .+ numerical_stability_param
+        # Solve (7) with newly computed weights
         output = basisPursuitDenoising(A, b, epsilon,
                                        solver_output=solver_output,
-                                       solver=solver,
                                        weights=new_weights,
                                        round_solution=false)
         if output == nothing
@@ -88,6 +135,7 @@ function iterativeReweightedL1(A, b, epsilon; solver_output=0, solver="Gurobi",
         iter_count = iter_count + 1
     end
 
+    # Perform greedy rounding if necessary
     if round_solution
         rounding_start = now()
         rounded_x, num_support = roundSolution(current_x, A, b, epsilon)

@@ -14,15 +14,11 @@ function isTerminal(one_indices, zero_indices, x_dim)
     This function evaluates whether the current node in the Branch and Bound
     tree is a terminal node.
 
-    :param zero_indices: List of 2-tuples of Int64 where each entry consists of
-                         an index (i, j) such that Y_ij is constrained to take
-                         value 0.
-    :param one_indices: List of 2-tuples of Int64 where each entry consists of
-                        an index (i, j) such that S_ij is constrained to take
-                        value 1 where S is the binary matrix denoting the
-                        sparsity pattern of Y.
-    :param k_sparse: The maximum sparsity of the sparse matrix (Int64).
-    :param matrix_dim: The row and column dimension of the data (Int64).
+    :param one_indices: A list of indices between 1 and n where x_i is
+                        constrained to take value 1.
+    :param zero_indices: A list of indices between 1 and n where x_i is
+                         constrained to take value 0.
+    :param x_dim: The cardinality of the vector x (Int64).
 
     :return: True if this is a terminal node, false otherwise (Bool).
     """
@@ -40,7 +36,35 @@ end
 
 function solveSubproblem(A, b, epsilon, gamma; round_solution=false,
     zero_indices=[], one_indices=[], subproblem_type="primal")
+    """
+    This is a wrapper function that either solves problem (25) or problem (26)
+    from Section 5.1.1 of the accompanying paper.
 
+    :param A: A m-by-n design matrix.
+    :param b: An m dimensional vector of observations.
+    :param epsilon: A numerical threshold parameter (Float64).
+    :param gamma: A regularization parameter (Float64).
+    :param round_solution: Flag that indicates whether or not to greedily
+                           round the solution of (25) or (26) to a solution that
+                           is feasible to problem (3).
+    :param zero_indices: A list of indices between 1 and n where x_i is
+                         constrained to take value 0.
+    :param one_indices: A list of indices between 1 and n where x_i is
+                        constrained to take value 1.
+    :param subproblem_type: Whether to employ the primal or dual subproblem
+                            formulation (String).
+
+    :return: If round_solution is true, this function returns five values. The
+             first is the rounded solution vector, the second is the objective
+             value achieved by the rounded solution, the third is the x vector
+             solution of the optimization problem, the fourth is the z vector
+             solution of the optimization problem and the fifth is the optimal
+             value of the optimization problem. If round_solution is false,
+             this function returns three values. The first is the x vector
+             solution of the optimization problem, the second is the z vector
+             solution of the optimization problem and the third is the optimal
+             value of the optimization problem.
+    """
     output = nothing
     if subproblem_type == "primal"
         output = solveSubproblemPrimal(A, b, epsilon, gamma,
@@ -72,41 +96,39 @@ end;
 
 function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
     round_at_nodes=false, output_to_file=false, output_file_name="temp.txt",
-    subproblem_type="primal", subproblem_warmstart=false, BPD_backbone=false,
-    use_default_gamma=false, cutoff_time=5)
+    subproblem_type="primal", BPD_backbone=false, use_default_gamma=false,
+    cutoff_time=5)
     """
-    This function computes a certifiably near-optimal solution to the problem
-        min ||U - X - Y||_F^2 + lambda * ||X||_F^2 + mu * ||Y||_F^2
-        subject to rank(X) <= k_rank, ||Y||_0 <= k_sparse
+    This function computes a certifiably optimal solution to the compressed
+    sensing problem (problem (3) in the accompanying paper) by executing a
+    custom branch and bound algorithm.
 
-    by executing a custom branch and bound algorithm.
-
-    :param U: An arbitrary n-by-n matrix.
-    :param mu: The regularization parameter for the sparse matrix penalty
-                   (Float64).
-    :param lambda: The regularization parameter for the low rank matrix penalty
-                   (Float64).
-    :param k_sparse: The maximum sparsity of the sparse matrix (Int64).
-    :param k_rank: The maximum rank of the low rank matrix (Int64).
-    :param epsilon: The Branch and Bound termination criterion. This function
-                    will terminate with an epsilon optimal solution to the
-                    optimization problem (Float64).
-    :param iter_min_improv: The minimal fractional decrease in the objective
-                            value required for the alternating minimization
-                            procedure to continue iterating.
-    :param symmetric_tree: If true, Branch and Bound will only explore symmetric
-                           sparsity patterns (Bool).
+    :param A: A m-by-n design matrix.
+    :param b: An m dimensional vector of observations.
+    :param epsilon: A numerical threshold parameter (Float64).
+    :param gamma: A regularization parameter (Float64).
+    :param termination_threshold: The relative optimality gap at which the
+                                  algorithm terminates (Float64).
+    :param round_at_nodes: Flag that controls whether or not upper bounds are
+                           computed as non terminal nodes (Bool).
     :param output_to_file: If true, progress output will be printed to file. If
                            false, progress output will be printed to the console
                            (Bool).
     :param output_file_name: Name of the file progress output will be printed to
                              when output_to_file=true (String).
+    :param subproblem_type: Whether to employ the primal or dual subproblem
+                            formulation (String).
+    :param BPD_backbone: Flag that controls whether or not to use the BPD
+                         solution as a backbone (Bool).
+    :param use_default_gamma: Flag that determines whether or not to use the
+                              default value of the regularization paramter
+                              (Bool).
+    :param cutoff_time: Maximum amount of time in minutes after which the branch
+                        and bound algorithm will terminate (Float64).
 
     :return: This function returns eight values:
-             1) A tuple of two n-by-n arrays that correspond to the globally
-                optimal solution to the optimization problem. The first element
-                in the tuple is the optimal low rank matrix and the second
-                element in the tuple is the optimal sparse matrix.
+             1) An n dimensional vector that corresponds to the globally
+                optimal solution to the optimization problem.
              2) The final global upper bound (Float64).
              3) The final global lower bound (Float64).
              4) The number of nodes explored during the optimization process
@@ -119,17 +141,9 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
                 (milliseconds).
              8) The number of terminal nodes explored during the optimization
                 process (Int64).
-
-                best feasible solution found
-             by this method (the first element in the tuple is the matrix X and
-             the second element is the matrix Y). The second value is the
-             objective value (Float64) achieved by the returned feasible
-             solution.
     """
-
     @assert subproblem_type in ["primal", "dual"]
     @assert round_at_nodes in [false, true]
-    @assert subproblem_warmstart in [false, true]
 
     start_time = now()
 
@@ -155,6 +169,7 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
     rounded_x = output[2]
     opt_x = output[4]
 
+    # Compute the BPD backbone if necessary
     if BPD_backbone
         for index=1:size(opt_x)[1]
             if abs(opt_x[index]) > 1e-6
@@ -223,6 +238,7 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
 
     terminal_nodes = 0
     infeasible_sets = []
+
     # Main branch and bound loop
     while (global_upper_bound - global_lower_bound) /
                                     global_upper_bound > termination_threshold
@@ -242,7 +258,6 @@ function CS_BnB(A, b, epsilon, gamma; termination_threshold=0.1,
             continue
         end
         # Select entry to branch on using most fractional rule
-        # Will later change this to utilize strong branching
         test_vector = abs.(current_node.relaxed_binary_vector .- 0.5)
         test_vector[current_node.one_indices] .= 10
         test_vector[current_node.zero_indices] .= 10

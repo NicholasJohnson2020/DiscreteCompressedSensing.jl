@@ -1,5 +1,15 @@
 function update_inverse(A, inv_ATA, a_i)
+    """
+    This function computes the pseudo inverse of the matrix
+    [A'A A'a_i; a_i'A a_i'a_i] by performing a rank one update on the matrix
+    inv_ATA, which is the pseudo inverse of A'A.
 
+    :param A: A m-by-t matrix.
+    :param inv_ATA: A t-by-t matrix that is pseudo inverse of A'A.
+    :param a_i: A m-dimensional vector.
+
+    :return: A (t+1)-by(t+1) matrix.
+    """
     comp = a_i'*a_i - a_i'*A*inv_ATA*A'*a_i
     if typeof(inv_ATA) == Float64
         n = 1
@@ -25,7 +35,21 @@ end;
 
 
 function roundSolution(x, A, b, epsilon; lower_bound=1)
+    """
+    This function performs greedy rounding on the input vector x according to
+    Algorithm 1 in Section 5.1.2 of the accompanying paper.
 
+    :param x: An n dimensional vector.
+    :param A: A m-by-n design matrix.
+    :param b: An m dimensional vector of observations.
+    :param epsilon: A numerical threshold parameter (Float64).
+    :param lower_bound: A lower bound on the optimial compressed sensing
+                        objective value (Float64).
+
+    :return: This function returns two values. The first is an n dimensional
+             vector that corresponds to the rounded version of the vector x. The
+             second is the cardinality of the rounded vector.
+    """
     (m, n) = size(A)
     ordering = sortperm(abs.(x), rev=true)
 
@@ -45,6 +69,8 @@ function roundSolution(x, A, b, epsilon; lower_bound=1)
     current_residual = b-current_mat*current_x
     current_error = norm(current_residual)^2
 
+    # Greedily expand the support until the norm of the residual is less than
+    # epsilon
     while current_error > epsilon
 
         if num_support == n

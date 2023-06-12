@@ -1,8 +1,22 @@
 function SOSRelaxation(A, b, epsilon, lambda; solver_output=false,
-    solver="Mosek", use_default_lambda=false, relaxation_degree=1)
+    use_default_lambda=false, relaxation_degree=1)
+    """
+    This function computes the solution to problem (21) of the accompanying
+    paper.
 
-    @assert solver in ["Mosek"]
+    :param A: A m-by-n design matrix.
+    :param b: An m dimensional vector of observations.
+    :param epsilon: A numerical threshold parameter (Float64).
+    :param lambda: A regularization parameter (Float64).
+    :param solver_output: Flag that determines Mosek is called in verbose
+                          mode (Bool).
+    :param use_default_lambda: Flag that determines whether or not to use the
+                               default value of the regularization paramter
+                               (Bool).
+    :param relaxation_degree: The degree of the relaxation (Int64).
 
+    :return: This function returns the optimal value of problem (21).
+    """
     (m, n) = size(A)
 
     if use_default_lambda
@@ -14,11 +28,11 @@ function SOSRelaxation(A, b, epsilon, lambda; solver_output=false,
     basis_large = monomials([x; z], 0:relaxation_degree)
     basis_small = monomials([x; z], 0:(relaxation_degree-1))
 
+    # Build the optimization problem
     model = Model(Mosek.Optimizer)
     set_optimizer_attribute(model, MOI.Silent(), !solver_output)
 
     @variable(model, t[i=1:n], Poly(basis_small))
-    #@variable(model, r[i=1:n], Poly(basis_small))
     @variable(model, s_0, SOSPoly(basis_large))
     @variable(model, s_1, SOSPoly(basis_small))
     @variable(model, opt_val)
@@ -38,24 +52,47 @@ function SOSRelaxation(A, b, epsilon, lambda; solver_output=false,
 end
 
 function perspectiveRelaxation(A, b, epsilon, lambda;
-    solver_output=0, solver="Gurobi", round_solution=true,
+    solver_output=0, round_solution=true,
     use_default_lambda=false)
+    """
+    This function computes the solution to problem (13) of the accompanying
+    paper.
 
-    @assert solver in ["Gurobi", "SCS"]
+    :param A: A m-by-n design matrix.
+    :param b: An m dimensional vector of observations.
+    :param epsilon: A numerical threshold parameter (Float64).
+    :param lambda: A regularization parameter (Float64).
+    :param solver_output: The "OutputFlag" parameter to be passed to
+                          Gurobi (Int64).
+    :param round_solution: Flag that controls whether or not to perform a greedy
+                           rounding of the solution of (13) to obtain a vector
+                           that is feasible to (3) (Bool).
+    :param use_default_lambda: Flag that determines whether or not to use the
+                              default value of the regularization paramter
+                              (Bool).
 
+    :return: If round_solution is true, this function returns six values:
+             1) The cardinality of the rounded solution (Int64).
+             2) The rounded solution.
+             3) The x vector solution to (13).
+             4) The z vector solution to (13).
+             5) The optimal value of problem (13).
+             6) The amount of time in milliseconds to perform the rounding.
+
+             If round_solution is false, this function returns three values:
+             1) The x vector solution to (13).
+             2) The z vector solution to (13).
+             3) The optimal value of problem (13).
+    """
     (m, n) = size(A)
 
     if use_default_lambda
         lambda = sqrt(n)
     end
 
-    if solver == "Gurobi"
-        model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
-        set_optimizer_attribute(model, "OutputFlag", solver_output)
-    else
-        model = Model(SCS.Optimizer)
-        set_optimizer_attribute(model, "verbose", solver_output)
-    end
+    # Build the optimization problem
+    model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
+    set_optimizer_attribute(model, "OutputFlag", solver_output)
 
     @variable(model, x[i=1:n])
     @variable(model, z[i=1:n] >= 0)
@@ -64,7 +101,6 @@ function perspectiveRelaxation(A, b, epsilon, lambda;
 
     @constraint(model, residual .== A * x .- b)
     @constraint(model, sum(residual[i]^2 for i=1:m) <= epsilon)
-    #@constraint(model, [epsilon^0.5; A*x.-b] in SecondOrderCone())
 
     @constraint(model, [i=1:n], z[i] * theta[i] >= x[i]^2)
 
@@ -78,24 +114,17 @@ function perspectiveRelaxation(A, b, epsilon, lambda;
     opt_x = value.(x)
     opt_z = value.(z)
 
+    # Perform greedy rounding
     if round_solution
-        rounding_start_z = now()
-        rounded_xz, num_support_z = roundSolution(opt_z, A, b, epsilon)
-        rounding_end_z = now()
-        rounding_time_z = rounding_end_z - rounding_start_z
+        rounding_start = now()
+        rounded_x, num_support = roundSolution(opt_x, A, b, epsilon)
+        rounding_end = now()
+        rounding_time = rounding_end - rounding_start
 
-        rounding_start_x = now()
-        rounded_xx, num_support_x = roundSolution(opt_x, A, b, epsilon)
-        rounding_end_x = now()
-        rounding_time_x = rounding_end_x - rounding_start_x
-
-        return (num_support_z,
-                rounded_xz,
-                num_support_x,
-                rounded_xx,
+        return (num_support,
+                rounded_x,
                 opt_x, opt_z, obj_value,
-                rounding_time_z,
-                rounding_time_x)
+                rounding_time)
     else
         return opt_x, opt_z, obj_value
     end
@@ -104,14 +133,33 @@ end;
 
 
 function perspectiveFormulation(A, b, epsilon, lambda; solver_output=0,
-    solver="Gurobi", BPD_backbone=false, use_default_lambda=false)
+    BPD_backbone=false, use_default_lambda=false)
+    """
+    This function computes the solution to problem (12) of the accompanying
+    paper by directly calling Gurobi.
 
-    @assert solver in ["Gurobi", "SCS"]
+    :param A: A m-by-n design matrix.
+    :param b: An m dimensional vector of observations.
+    :param epsilon: A numerical threshold parameter (Float64).
+    :param lambda: A regularization parameter (Float64).
+    :param solver_output: The "OutputFlag" parameter to be passed to
+                          Gurobi (Int64).
+    :param BPD_backbone: Flag that controls whether or not to use the BPD
+                         solution as a backbone (Bool).
+    :param use_default_lambda: Flag that determines whether or not to use the
+                              default value of the regularization paramter
+                              (Bool).
 
+    :return: This function returns three values:
+             1) The x vector solution to (12).
+             2) The z vector solution to (12).
+             3) The optimal value of problem (12).
+    """
     (m, n) = size(A)
     original_n = n
     backbone = []
 
+    # Compute the BPD backbone if necessary
     if BPD_backbone
 
         _, opt_x = basisPursuitDenoising(A, b, epsilon,
@@ -134,13 +182,9 @@ function perspectiveFormulation(A, b, epsilon, lambda; solver_output=0,
         lambda = sqrt(n)
     end
 
-    if solver == "Gurobi"
-        model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
-        set_optimizer_attribute(model, "OutputFlag", solver_output)
-    else
-        model = Model(SCS.Optimizer)
-        set_optimizer_attribute(model, "verbose", solver_output)
-    end
+    # Build the optimization problem
+    model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
+    set_optimizer_attribute(model, "OutputFlag", solver_output)
 
     @variable(model, x[i=1:n])
     @variable(model, z[i=1:n], Bin)
