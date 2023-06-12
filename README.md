@@ -20,29 +20,26 @@ and bound algorithm. The branch and bound algorithm can be halted early to
 return a high quality feasible solution.
 
 ## Installation and set up
-# NEED TO FINISH THIS SECTION
 
 In order to run this software, you must install a recent version of Julia from
 http://julialang.org/downloads/, a recent version of the Mosek solver (academic
 licenses are freely available at
 https://www.mosek.com/products/academic-licenses/), and a recent version of the
-Gurobi solver (academic licenses are freely available at )
+Gurobi solver (academic licenses are freely available at
+https://www.gurobi.com/academia/academic-program-and-licenses/). This code was
+developed using Julia 1.5.2, Mosek 9.2 and Gurobi 9.0.3.
 
-
-The most recent version of Julia at the time this code was last tested was Julia 1.5.1 using Mosek version 9.2.
-
-Several packages must be installed in Julia before the code can be run.  These packages can be found in "SparseLowRankSoftware.jl". The code was last tested using the following package versions:
+Several packages must be installed in Julia before the code can be run.  These packages can be found in "DiscreteCompressedSensing.jl". The code was last tested using the following package versions:
 
 - Distributions v0.25.0
+- DynamicPolynomials v0.3.15
+- Gurobi v0.9.3
 - JuMP v0.21.4
-- LowRankApprox v0.5.0
 - Mosek v1.1.3
 - MosekTools v0.9.4
-- SCS v0.7.1
-- StatsBase v0.33.8
-- TSVD v0.4.3
+- SumOfSquares v0.4.2
 
-## Use of the SLR_AM() and SLR_BnB() functions
+## Use of the CS_BnB(), perspectiveRelaxation() and SOSRelaxation() functions
 
 The three key methods in this package are CS_BnB(), perspectiveRelaxation() and
 SOSRelaxation().  They both take four required  arguments: `A`, `b`, `\epsilon`, `\gamma`, as well as several optional arguments which are described in the
