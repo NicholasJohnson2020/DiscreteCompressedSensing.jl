@@ -25,7 +25,7 @@ function processData(input_path, prefix; BnB=false)
          exp_data = JSON.parse(exp_data)
       end
 
-      if sum(exp_data[b_full]) == 0.0
+      if sum(exp_data["b_full"]) == 0.0
          continue
       end
 
