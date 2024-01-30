@@ -3,7 +3,7 @@ using JSON
 file_path = ARGS[1]
 
 #GAMMA_MULT = [0.01, 0.1, 1, 10]
-GAMMA_MULT = collect(LinRange(0.01, 8, 120))
+GAMMA_MULT = collect(LinRange(0.01, 5, 10))
 GAMMA_FLAG = ["SQUARE_ROOT", "LINEAR", "SQUARE"]
 
 config_count = 0
