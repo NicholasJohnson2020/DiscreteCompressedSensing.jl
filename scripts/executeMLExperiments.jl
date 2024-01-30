@@ -18,12 +18,12 @@ valid_methods = ["BPD_Rounded", "IRWL1_Rounded", "OMP", "BnB_Primal",
 @assert method_name in valid_methods
 
 # Load the experiment data
-A = npzread(input_path * "A.npy")
-Y_train_mean = npzread(input_path * "Y_train_mean.npy")
-Y_test_pred = npzread(input_path * "Y_test_pred.npy")
-Y_train_pred = npzread(input_path * "Y_train_pred.npy")
-Y_test = npzread(input_path * "Y_test.npy")
-Y_train = npzread(input_path * "Y_train.npy")
+A = npzread(input_path * "/A.npy")
+Y_train_mean = npzread(input_path * "/Y_train_mean.npy")
+Y_test_pred = npzread(input_path * "/Y_test_pred.npy")
+Y_train_pred = npzread(input_path * "/Y_train_pred.npy")
+Y_test = npzread(input_path * "/Y_test.npy")
+Y_train = npzread(input_path * "/Y_train.npy")
 
 numerical_threshold = 1e-4
 task_ID_list = collect((task_ID_input+1):num_tasks_input:size(Y_test_pred)[1])
