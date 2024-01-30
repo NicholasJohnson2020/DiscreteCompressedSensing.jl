@@ -106,7 +106,8 @@ function solveSubproblemDual(A, b, epsilon, gamma;
     free_indices = free_indices[(!in).(free_indices, Ref(one_indices))]
 
     # Build the optimization problem
-    model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
+    # (for julia 1.5.2) model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
+    model = Model(()->Gurobi.Optimizer(GUROBI_ENV))
     set_optimizer_attribute(model, "OutputFlag", solver_output)
 
     @variable(model, nu[j=1:m])

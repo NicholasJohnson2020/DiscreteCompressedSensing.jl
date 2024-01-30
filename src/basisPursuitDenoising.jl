@@ -39,7 +39,8 @@ function basisPursuitDenoising(A, b, epsilon; weights=nothing,
     zero_indices = findall(>(max_weight), weights)
 
     # Build the optimization problem
-    model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
+    # (for julia 1.5.2) model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
+    model = Model(()->Gurobi.Optimizer(GUROBI_ENV))
     set_optimizer_attribute(model, "OutputFlag", solver_output)
 
     @variable(model, x[i=1:n])

@@ -91,7 +91,8 @@ function perspectiveRelaxation(A, b, epsilon, lambda;
     end
 
     # Build the optimization problem
-    model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
+    # (for julia 1.5.2) model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
+    model = Model(()->Gurobi.Optimizer(GUROBI_ENV))
     set_optimizer_attribute(model, "OutputFlag", solver_output)
 
     @variable(model, x[i=1:n])
@@ -183,7 +184,8 @@ function perspectiveFormulation(A, b, epsilon, lambda; solver_output=0,
     end
 
     # Build the optimization problem
-    model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
+    # (for julia 1.5.2) model = Model(with_optimizer(Gurobi.Optimizer, GUROBI_ENV))
+    model = Model(()->Gurobi.Optimizer(GUROBI_ENV))
     set_optimizer_attribute(model, "OutputFlag", solver_output)
 
     @variable(model, x[i=1:n])
