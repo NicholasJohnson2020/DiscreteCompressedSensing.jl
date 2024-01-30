@@ -18,7 +18,6 @@ for gamma_flag in GAMMA_FLAG
         param_dict[config_count] = Dict("GAMMA_MULT"=>gamma_mult,
                                         "GAMMA_FLAG"=>gamma_flag)
 
-        end
     end
 end
 
