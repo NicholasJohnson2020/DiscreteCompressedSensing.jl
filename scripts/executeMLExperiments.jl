@@ -42,7 +42,7 @@ for TASK_ID in task_ID_list
     experiment_results["GAMMA_MULT"] = gamma_mult
     experiment_results["GAMMA_FLAG"] = gamma_flag
 
-    b_observed = Y_test_ped[TASK_ID, :]
+    b_observed = Y_test_pred[TASK_ID, :]
     epsilon = epsilon_mult * norm(b_observed)^2
 
     rounding_time = nothing
