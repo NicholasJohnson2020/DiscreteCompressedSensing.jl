@@ -2,6 +2,7 @@ using JuMP, Gurobi, LinearAlgebra, Random, Dates, SparseArrays
 using DataStructures, ProgressMeter, Base.Threads
 using JSON, MAT, Statistics, Distributions
 using DynamicPolynomials, SumOfSquares, Mosek, MosekTools
+using NPZ
 
 GUROBI_ENV = Gurobi.Env()
 
