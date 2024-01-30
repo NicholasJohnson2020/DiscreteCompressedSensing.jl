@@ -9,7 +9,7 @@ epsilon_BnB = 0.1
 
 epsilon_mult = 0.1
 
-gamma_flag == "SQUARE_ROOT"
+gamma_flag = "SQUARE_ROOT"
 gamma_mult = 0.5
 
 valid_methods = ["BPD_Rounded", "IRWL1_Rounded", "OMP", "BnB_Primal",
