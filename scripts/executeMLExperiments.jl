@@ -29,6 +29,9 @@ numerical_threshold = 1e-4
 task_ID_list = collect((task_ID_input+1):num_tasks_input:size(Y_test_pred)[1])
 
 # Main loop to execute experiments
+
+start_time = now()
+
 for TASK_ID in task_ID_list
 
     println("Starting Example " * string(TASK_ID))
@@ -167,8 +170,8 @@ for TASK_ID in task_ID_list
     JSON.print(f, JSON.json(experiment_results))
     close(f)
 
-    total_time = now() - start_time
-    print("Total execution time: ")
-    println(total_time)
-
 end
+
+total_time = now() - start_time
+print("Total execution time: ")
+println(total_time)
