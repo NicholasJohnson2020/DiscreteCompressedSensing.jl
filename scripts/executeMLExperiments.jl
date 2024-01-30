@@ -48,7 +48,7 @@ for param_list in task_ID_list
 
     TASK_ID = param_list[1]
     PARAM_ID = param_list[2]
-    LABEL_ID = (TASK_ID - 1) * size(Y_test_pred)[1] + PARAM_ID
+    LABEL_ID = (PARAM_ID - 1) * length(param_dict) + TASK_ID
 
     println("Starting Example " * string(LABEL_ID))
 
