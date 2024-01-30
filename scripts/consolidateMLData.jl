@@ -25,6 +25,10 @@ function processData(input_path, prefix; BnB=false)
          exp_data = JSON.parse(exp_data)
       end
 
+      if sum(exp_data[b_full]) == 0.0
+         continue
+      end
+
       # Extract and store the relevant data
       current_row = [exp_data["TASK_ID"],
                      exp_data["EPSILON"],
