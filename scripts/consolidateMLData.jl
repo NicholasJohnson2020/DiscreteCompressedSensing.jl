@@ -5,10 +5,10 @@ function processData(input_path, prefix; BnB=false)
    This function loads raw experiment output data and processes it into a
    dataframe.
    """
-   df = DataFrame(index=Int64[], epsilon_multiple=Float64[],
-                  gamma_mult=Float64[], gamma_flag=String[], L2_error=Float64[],
-                  L2_error_rel=Float64[], L0_norm=Int64[], TPR=Float64[],
-                  TNR=Float64[], acc=Float64[], exec_time=Float64[])
+   df = DataFrame(index=Any[], epsilon_multiple=Any[],
+                  gamma_mult=Any[], gamma_flag=Any[], L2_error=Any[],
+                  L2_error_rel=Any[], L0_norm=Any[], TPR=Any[],
+                  TNR=Any[], acc=Any[], exec_time=Any[])
 
    successful_entries = 0
 
