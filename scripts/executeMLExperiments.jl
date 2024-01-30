@@ -9,13 +9,22 @@ epsilon_BnB = 0.1
 
 epsilon_mult = 0.1
 
-gamma_flag = "SQUARE_ROOT"
-gamma_mult = 0.5
+#gamma_flag = "SQUARE_ROOT"
+#gamma_mult = 0.5
 
 valid_methods = ["BPD_Rounded", "IRWL1_Rounded", "OMP", "BnB_Primal",
                  "BnB_Dual"]
 
 @assert method_name in valid_methods
+
+# Load the experiment parameters
+param_dict = Dict()
+open(input_path * "params.json", "r") do f
+    global param_dict
+    dicttxt = JSON.read(f, String)  # file information to string
+    param_dict = JSON.parse(dicttxt)  # parse and transform data
+    param_dict = JSON.parse(param_dict)
+end
 
 # Load the experiment data
 A = npzread(input_path * "A.npy")
@@ -26,15 +35,25 @@ Y_test = npzread(input_path * "Y_test.npy")
 Y_train = npzread(input_path * "Y_train.npy")
 
 numerical_threshold = 1e-4
-task_ID_list = collect((task_ID_input+1):num_tasks_input:size(Y_test_pred)[1])
+
+#task_ID_list = collect((task_ID_input+1):num_tasks_input:size(Y_test_pred)[1])
+param_combinations = [(i, j) for i=1:size(Y_test_pred)[1], j=1:length(param_dict)]
+task_ID_list = param_combinations[(task_ID_input+1):num_tasks_input:size(param_combinations)[1]]
 
 # Main loop to execute experiments
 
 start_time = now()
 
-for TASK_ID in task_ID_list
+for param_list in task_ID_list
 
-    println("Starting Example " * string(TASK_ID))
+    TASK_ID = param_list[1]
+    PARAM_ID = param_list[2]
+    LABEL_ID = (TASK_ID - 1) * size(Y_test_pred)[1] + PARAM_ID
+
+    println("Starting Example " * string(LABEL_ID))
+
+    gamma_mult = param_dict[string(PARAM_ID)]["GAMMA_MULT"]
+    gamma_flag = param_dict[string(PARAM_ID)]["GAMMA_FLAG"]
 
     # Create dictionary to store experiment results
     experiment_results = Dict()
@@ -162,11 +181,11 @@ for TASK_ID in task_ID_list
         experiment_results["num_nodes"] = num_nodes
     end
 
-    println("Finishing Example " * string(TASK_ID))
+    println("Finishing Example " * string(LABEL_ID))
     println()
 
     # Save the results to file
-    f = open(output_path * "_" * string(TASK_ID) * ".json","w")
+    f = open(output_path * "_" * string(LABEL_ID) * ".json","w")
     JSON.print(f, JSON.json(experiment_results))
     close(f)
 
