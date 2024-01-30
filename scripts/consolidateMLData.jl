@@ -51,7 +51,7 @@ function processData(input_path, prefix; BnB=false)
    end
 
    if BnB
-      df[!, "num_nodes"] = num_nodes_mean
+      df[!, "num_nodes"] = num_nodes
    end
 
    println("$successful_entries entries have been entered into the dataframe.")
