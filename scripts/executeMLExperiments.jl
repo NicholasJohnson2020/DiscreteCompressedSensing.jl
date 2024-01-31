@@ -7,7 +7,7 @@ task_ID_input = parse(Int64, ARGS[3])
 num_tasks_input = parse(Int64, ARGS[4])
 epsilon_BnB = 0.1
 
-epsilon_mult = 0.1
+epsilon_mult = 0.05
 
 gamma_flag = "SQUARE"
 gamma_mult = 0.5
