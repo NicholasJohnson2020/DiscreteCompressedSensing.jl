@@ -7,10 +7,10 @@ task_ID_input = parse(Int64, ARGS[3])
 num_tasks_input = parse(Int64, ARGS[4])
 epsilon_BnB = 0.1
 
-epsilon_mult = 0.05
+epsilon_mult = 0.25
 
-gamma_flag = "SQUARE"
-gamma_mult = 0.5
+gamma_flag = "SQUARE_ROOT"
+gamma_mult = 0.2
 
 valid_methods = ["BPD_Rounded", "IRWL1_Rounded", "OMP", "BnB_Primal",
                  "BnB_Dual"]
