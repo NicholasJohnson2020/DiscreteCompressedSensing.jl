@@ -1,5 +1,7 @@
 using JSON, LinearAlgebra, Statistics, DataFrames, CSV
 
+numerical_threshold = 1e-4
+
 function processData(input_path, prefix; BnB=false)
    """
    This function loads raw experiment output data and processes it into a
@@ -8,7 +10,7 @@ function processData(input_path, prefix; BnB=false)
    df = DataFrame(index=Any[], epsilon_multiple=Any[],
                   gamma_mult=Any[], gamma_flag=Any[], L2_error=Any[],
                   L2_error_rel=Any[], L0_norm=Any[], TPR=Any[],
-                  TNR=Any[], acc=Any[], exec_time=Any[])
+                  TNR=Any[], acc=Any[], precision=Any[], exec_time=Any[])
 
    successful_entries = 0
 
@@ -29,6 +31,10 @@ function processData(input_path, prefix; BnB=false)
          continue
       end
 
+      true_ind = findall(==(1), exp_data["b_full"])
+      selected_ind = findall(==(1), abs.(exp_data[prefix * "solution"]) .> numerical_threshold)
+      precision = size(findall(in(true_ind), selected_ind))[1] / exp_data[prefix * "L0_norm"]
+
       # Extract and store the relevant data
       current_row = [exp_data["TASK_ID"],
                      exp_data["EPSILON"],
@@ -40,6 +46,7 @@ function processData(input_path, prefix; BnB=false)
                      exp_data[prefix * "TPR"],
                      exp_data[prefix * "TNR"],
                      exp_data[prefix * "accuracy"],
+                     precision
                      exp_data[prefix * "execution_time"]]
 
       if BnB
@@ -60,7 +67,6 @@ end;
 
 METHOD_NAME = ARGS[1]
 INPUT_PATH = ARGS[2] * METHOD_NAME * "/"
-numerical_threshold = 1e-4
 
 # Process and save the data
 if METHOD_NAME in ["BnB_Primal", "BnB_Primal_2"]
