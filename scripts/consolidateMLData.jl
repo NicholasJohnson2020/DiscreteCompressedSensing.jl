@@ -46,7 +46,7 @@ function processData(input_path, prefix; BnB=false)
                      exp_data[prefix * "TPR"],
                      exp_data[prefix * "TNR"],
                      exp_data[prefix * "accuracy"],
-                     precision
+                     precision,
                      exp_data[prefix * "execution_time"]]
 
       if BnB
