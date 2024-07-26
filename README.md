@@ -51,13 +51,13 @@ input data to the optimization problem.
 If you use DiscreteCompressedSensing.jl, we ask that you please cite the following [paper](https://arxiv.org/pdf/2306.04647.pdf):
 
 ```
-@misc{bertsimas2023compressed,
-      title={Compressed Sensing: A Discrete Optimization Approach},
-      author={Dimitris Bertsimas and Nicholas Johnson},
-      year={2023},
-      eprint={2306.04647},
-      archivePrefix={arXiv},
-      primaryClass={eess.SP}
+@article{bertsimas2024compressed,
+  title={Compressed sensing: A discrete optimization approach},
+  author={Bertsimas, Dimitris and Johnson, Nicholas AG},
+  journal={Machine Learning},
+  pages={1--40},
+  year={2024},
+  publisher={Springer}
 }
 ```
 
