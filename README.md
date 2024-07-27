@@ -47,7 +47,7 @@ input data to the optimization problem.
 
 ## Citing DiscreteCompressedSensing.jl
 
-If you use DiscreteCompressedSensing.jl, we ask that you please cite the following [paper](https://arxiv.org/pdf/2306.04647.pdf):
+If you use DiscreteCompressedSensing.jl, we ask that you please cite the following [paper](https://link.springer.com/article/10.1007/s10994-024-06577-0):
 
 ```
 @article{bertsimas2024compressed,
