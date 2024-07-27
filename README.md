@@ -1,6 +1,5 @@
 # DiscreteCompressedSensing.jl
-Software supplement for the paper  "Compressed Sensing: A Discrete Optimization Approach"  by Dimitris Bertsimas and Nicholas A. G. Johnson for which a preprint
-is available [here](https://arxiv.org/pdf/2306.04647.pdf).
+Software supplement for the paper  "Compressed Sensing: A Discrete Optimization Approach"  by Dimitris Bertsimas and Nicholas A. G. Johnson available [here](https://link.springer.com/article/10.1007/s10994-024-06577-0).
 
 ## Introduction
 
